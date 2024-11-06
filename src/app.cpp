@@ -86,6 +86,25 @@ void App::process_inputs() {
     if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(win, GLFW_TRUE);
     }
+
+    if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
+        cam.translate({0, 0, 1});
+    }
+    if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
+        cam.translate({0, 0, -1});
+    }
+    if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
+        cam.translate({1, 0, 0});
+    }
+    if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
+        cam.translate({-1, 0, 0});
+    }
+    if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        cam.translate({0, -1, 0});
+    }
+    if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        cam.translate({0, 1, 0});
+    }
 }
 
 void App::draw() {
@@ -94,6 +113,13 @@ void App::draw() {
 
     glEnable(GL_PROGRAM_POINT_SIZE);
     glUseProgram(point_shader);
+
+    auto proj = cam.get_proj();
+    auto view = cam.get_view();
+    GLint loc_proj = glGetUniformLocation(point_shader, "proj");
+    GLint loc_view = glGetUniformLocation(point_shader, "view");
+    glUniformMatrix4fv(loc_proj, 1, GL_FALSE, &proj[0][0]);
+    glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);
 
     glBindVertexArray(vao);
 

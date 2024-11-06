@@ -1,6 +1,8 @@
 #ifndef APP_HPP
 #define APP_HPP
 
+#include "camera.hpp"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -28,6 +30,8 @@ class App {
     GLuint vao;
     GLuint point_shader;
     size_t num_gaussians;
+
+    Camera cam;
 };
 }  // namespace splat
 
