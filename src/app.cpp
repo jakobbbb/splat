@@ -37,14 +37,26 @@ void App::load_data(char* ply_path) {
     num_gaussians = v_pos.size();
 
     std::vector<std::string> properties = {
-            "x", "y", "z", "f_dc_0", "f_dc_1", "f_dc_2", "opacity",
-            //"scale_0",
-            //"scale_1",
-            //"scale_2",
-            //"rot_0",
-            //"rot_1",
-            //"rot_2",
-            //"rot_3",
+            "x",
+            "y",
+            "z",
+            "f_dc_0",
+            "f_dc_1",
+            "f_dc_2",
+            "opacity",
+            "scale_0",
+            "scale_1",
+            "scale_2",
+            "rot_0",
+            "rot_1",
+            "rot_2",
+            "rot_3",
+    };
+    std::vector<size_t> property_sizes = {
+            3,  // x, y, z
+            4,  // color + opacity
+            3,  // scale
+            4,  // rotation
     };
 
     std::vector<std::vector<float>> values{};
@@ -77,22 +89,19 @@ void App::load_data(char* ply_path) {
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0,                  // location
-                          3,                  // attribute size
-                          GL_FLOAT,           // attribute type
-                          GL_FALSE,           // don't normalize
-                          7 * sizeof(float),  // stride
-                          (void*)0            // offset
-    );
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,                          // location
-                          4,                          // attribute size
-                          GL_FLOAT,                   // attribute type
-                          GL_FALSE,                   // don't normalize
-                          7 * sizeof(float),          // stride
-                          (void*)(3 * sizeof(float))  // offset
-    );
-    glEnableVertexAttribArray(1);
+
+    size_t offset = 0;
+    for (size_t i = 0; i < property_sizes.size(); ++i) {
+        glVertexAttribPointer(i,                                  // location
+                              property_sizes[i],                  // attribute size
+                              GL_FLOAT,                           // attribute type
+                              GL_FALSE,                           // don't normalize
+                              properties.size() * sizeof(float),  // stride
+                              (void*)(offset * sizeof(float))     // offset
+        );
+        glEnableVertexAttribArray(i);
+        offset += property_sizes[i];
+    }
 }
 
 void App::load_shaders() {
