@@ -25,6 +25,7 @@ void App::init_window() {
 
     auto resize_callback = [](GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
+        // cam.update_res(width, height);
     };
     glfwSetFramebufferSizeCallback(win, resize_callback);
 
@@ -143,11 +144,16 @@ void App::process_inputs() {
 }
 
 void App::draw() {
-    glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_BLEND);
     glUseProgram(point_shader);
+
+    int w, h;
+    glfwGetFramebufferSize(win, &w, &h);
+    cam.update_res(w, h);
 
     auto proj = cam.get_proj();
     auto view = cam.get_view();

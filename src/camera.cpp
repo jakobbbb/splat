@@ -13,7 +13,8 @@ glm::mat4 Camera::get_view() const {
 }
 
 glm::mat4 Camera::get_proj() const {
-    return glm::perspective(glm::radians(90.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
+    float aspect = (float)width / (float)height;
+    return glm::perspective(glm::radians(90.0f), aspect, 0.1f, 1000.0f);
 }
 
 void Camera::translate(glm::vec3 delta) {
@@ -32,6 +33,7 @@ void Camera::update_rot(double mouse_x_new, double mouse_y_new) {
 
         euler_angles.y += f * dx;
         euler_angles.x += f * dy;
+        euler_angles.x = glm::clamp(euler_angles.x, glm::radians(-90.0f), glm::radians(90.0f));
     }
 
     mouse_x = mouse_x_new;
@@ -42,5 +44,7 @@ void Camera::reset_mouse() {
     mouse_x = -100;
     mouse_y = -100;
 }
+
+void Camera::update_res(size_t width, size_t height) {}
 
 }  // namespace splat

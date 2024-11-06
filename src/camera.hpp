@@ -13,6 +13,7 @@ class Camera {
     void translate(glm::vec3 delta);
     void update_rot(double mouse_x, double mouse_y);
     void reset_mouse();
+    void update_res(size_t width, size_t height);
 
    private:
     glm::vec3 pos = {0, 0, 0};
@@ -20,6 +21,8 @@ class Camera {
     float speed = 0.2f;
     double mouse_x;
     double mouse_y;
+    size_t width = 1;
+    size_t height = 1;
 };
 
 }  // namespace splat
