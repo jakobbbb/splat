@@ -36,37 +36,43 @@ void App::load_data(char* ply_path) {
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
     num_gaussians = v_pos.size();
 
-    std::vector<float> f_dc_0 = ply.getElement("vertex").getProperty<float>("f_dc_0");
-    std::vector<float> f_dc_1 = ply.getElement("vertex").getProperty<float>("f_dc_1");
-    std::vector<float> f_dc_2 = ply.getElement("vertex").getProperty<float>("f_dc_2");
+    std::vector<std::string> properties = {
+            "x", "y", "z", "f_dc_0", "f_dc_1", "f_dc_2", "opacity",
+            //"scale_0",
+            //"scale_1",
+            //"scale_2",
+            //"rot_0",
+            //"rot_1",
+            //"rot_2",
+            //"rot_3",
+    };
 
-    std::cout << "rgb??? " << f_dc_0[0] << "\n";
+    std::vector<std::vector<float>> values{};
+
+    std::vector<float> data = {};
+    data.reserve(num_gaussians * properties.size());
+
+    for (size_t i = 0; i < properties.size(); ++i) {
+        auto property = properties[i];
+        values.emplace_back(ply.getElement("vertex").getProperty<float>(property));
+    }
+
+    for (size_t i_gaussian = 0; i_gaussian < num_gaussians; ++i_gaussian) {
+        for (size_t i_property = 0; i_property < properties.size(); ++i_property) {
+            float value = values[i_property][i_gaussian];
+
+            if (properties[i_property][0] == 'f') {
+                // https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#%E2%84%93_=_0
+                const float SH_0 = 0.28209479177387814f;
+                value = 0.5f + SH_0 * value;
+            }
+
+            data.push_back(value);
+        }
+    }
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-
-    std::vector<float> data = {};
-    data.reserve(2 * v_pos.size());
-
-    size_t i = 0;
-    for (const auto& p : v_pos) {
-        data.push_back((float)p[0]);
-        data.push_back(-(float)p[1]);
-        data.push_back((float)p[2]);
-
-        glm::vec3 col = {f_dc_0[i], f_dc_1[i], f_dc_2[i]};
-
-        // https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#%E2%84%93_=_0
-        const float SH_0 = 0.28209479177387814f;
-
-        col = 0.5f + SH_0 * col;
-        data.push_back(col.x);  // R
-        data.push_back(col.y);  // G
-        data.push_back(col.z);  // B
-        data.push_back(1.0f);   // A
-
-        ++i;
-    }
 
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
