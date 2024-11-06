@@ -33,7 +33,7 @@ void App::init_window() {
 
 void App::load_data() {
     const char* ply_path =
-            "/mnt/wd/home/jakob/archive/splat_models/garden/point_cloud/iteration_30000/"
+            "/mnt/wd/home/jakob/archive/splat_models/garden/point_cloud/iteration_7000/"
             "point_cloud.ply";
     happly::PLYData ply(ply_path);
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
@@ -54,7 +54,7 @@ void App::load_data() {
     size_t i = 0;
     for (const auto& p : v_pos) {
         data.push_back((float)p[0]);
-        data.push_back((float)p[1]);
+        data.push_back(-(float)p[1]);
         data.push_back((float)p[2]);
 
         glm::vec3 col = {f_dc_0[i], f_dc_1[i], f_dc_2[i]};
@@ -63,9 +63,10 @@ void App::load_data() {
         const float SH_0 = 0.28209479177387814f;
 
         col = 0.5f + SH_0 * col;
-        data.push_back(col.x);
-        data.push_back(col.y);
-        data.push_back(col.z);
+        data.push_back(col.x);  // R
+        data.push_back(col.y);  // G
+        data.push_back(col.z);  // B
+        data.push_back(1.0f);   // A
 
         ++i;
     }
@@ -77,7 +78,7 @@ void App::load_data() {
                           3,                  // attribute size
                           GL_FLOAT,           // attribute type
                           GL_FALSE,           // don't normalize
-                          6 * sizeof(float),  // stride
+                          7 * sizeof(float),  // stride
                           (void*)0            // offset
     );
     glEnableVertexAttribArray(0);
@@ -85,7 +86,7 @@ void App::load_data() {
                           4,                          // attribute size
                           GL_FLOAT,                   // attribute type
                           GL_FALSE,                   // don't normalize
-                          6 * sizeof(float),          // stride
+                          7 * sizeof(float),          // stride
                           (void*)(3 * sizeof(float))  // offset
     );
     glEnableVertexAttribArray(1);
