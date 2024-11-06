@@ -27,6 +27,7 @@ class App {
     GLuint vertex_buffer;
     GLuint vao;
     GLuint point_shader;
+    size_t num_gaussians;
 };
 }  // namespace splat
 

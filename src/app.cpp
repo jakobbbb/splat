@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "external/happly.h"
 #include "util.hpp"
 
 #include <cassert>
@@ -31,10 +32,26 @@ void App::init_window() {
 }
 
 void App::load_data() {
+    const char* ply_path =
+            "/mnt/wd/home/jakob/archive/splat_models/train/point_cloud/iteration_7000/"
+            "point_cloud.ply";
+    happly::PLYData plyIn(ply_path);
+    std::vector<std::array<double, 3>> vPos = plyIn.getVertexPositions();
+    std::cout << vPos.size() << "\n";
+    num_gaussians = vPos.size();
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    std::vector<float> data = {0.3f, 0.3f, 0.0f};
+    std::vector<float> data = {};
+    data.reserve(vPos.size());
+
+    for (const auto& p : vPos) {
+        data.push_back((float)p[0]);
+        data.push_back((float)p[1]);
+        data.push_back((float)p[2]);
+    }
+
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
@@ -46,6 +63,7 @@ void App::load_data() {
                           (void*)0            // offset
     );
     glEnableVertexAttribArray(0);
+
 }
 
 void App::load_shaders() {
@@ -79,7 +97,7 @@ void App::draw() {
 
     glBindVertexArray(vao);
 
-    glDrawArraysInstanced(GL_POINTS, 0, 1, 30);
+    glDrawArrays(GL_POINTS, 0, num_gaussians);
 }
 
 }  // namespace splat
