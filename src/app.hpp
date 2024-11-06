@@ -11,7 +11,7 @@ int main(int argc, char** argv);
 namespace splat {
 class App {
    public:
-    App();
+    App(char* ply_path);
     void run();
 
     const uint32_t WIDTH = 1280;
@@ -22,7 +22,7 @@ class App {
     void init_window();
     void draw();
     void process_inputs();
-    void load_data();
+    void load_data(char* ply_path);
     void load_shaders();
 
     uint32_t frame = 0;

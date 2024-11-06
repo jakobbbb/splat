@@ -1,0 +1,37 @@
+ply
+format ascii 1.0
+element vertex 27
+property float x
+property float y
+property float z
+property float f_dc_0
+property float f_dc_1
+property float f_dc_2
+end_header
+-1 -1 -1 0 0 0
+-1 -1 0 0 0 1
+-1 -1 1 0 1 0
+-1 0 -1 0 1 1
+-1 0 0 1 0 0
+-1 0 1 1 0 1
+-1 1 -1 1 1 0
+-1 1 0 1 1 1
+-1 1 1 0 0 0
+0 -1 -1 0 0 1
+0 -1 0 0 1 0
+0 -1 1 1 0 0
+0 0 -1 1 0 1
+0 0 0 0 1 1
+0 0 1 0 1 0
+0 1 -1 1 1 1
+0 1 0 1 0 0
+0 1 1 0 1 0
+1 -1 -1 0 1 0
+1 -1 0 1 1 1
+1 -1 1 1 0 0
+1 0 -1 1 1 0
+1 0 0 0 1 0
+1 0 1 0 0 1
+1 1 -1 0 0 1
+1 1 0 0 0 0
+1 1 1 1 0 1

@@ -45,6 +45,9 @@ void Camera::reset_mouse() {
     mouse_y = -100;
 }
 
-void Camera::update_res(size_t width, size_t height) {}
+void Camera::update_res(size_t w, size_t h) {
+    width = w;
+    height = h;
+}
 
 }  // namespace splat

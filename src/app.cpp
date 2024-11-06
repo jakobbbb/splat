@@ -8,9 +8,9 @@
 
 namespace splat {
 
-App::App() {
+App::App(char* ply_path) {
     init_window();
-    load_data();
+    load_data(ply_path);
     load_shaders();
 }
 
@@ -25,17 +25,13 @@ void App::init_window() {
 
     auto resize_callback = [](GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
-        // cam.update_res(width, height);
     };
     glfwSetFramebufferSizeCallback(win, resize_callback);
 
     glewInit();
 }
 
-void App::load_data() {
-    const char* ply_path =
-            "/mnt/wd/home/jakob/archive/splat_models/garden/point_cloud/iteration_7000/"
-            "point_cloud.ply";
+void App::load_data(char* ply_path) {
     happly::PLYData ply(ply_path);
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
     num_gaussians = v_pos.size();
@@ -170,6 +166,11 @@ void App::draw() {
 }  // namespace splat
 
 int main(int argc, char** argv) {
-    auto app = splat::App();
+    if (argc < 2) {
+        std::cout << "usage: " << argv[0] << " <point_cloud.ply>\n";
+        return 1;
+    }
+    char* ply_path = argv[1];
+    auto app = splat::App(ply_path);
     app.run();
 }
