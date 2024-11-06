@@ -105,6 +105,15 @@ void App::process_inputs() {
     if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
         cam.translate({0, 1, 0});
     }
+
+    if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        double x, y;
+        glfwGetCursorPos(win, &x, &y);
+        cam.update_rot(x, y);
+    }
+    if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+        cam.reset_mouse();
+    }
 }
 
 void App::draw() {

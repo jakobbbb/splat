@@ -20,4 +20,28 @@ void Camera::translate(glm::vec3 delta) {
     pos += speed * delta;
 }
 
+void Camera::update_rot(double mouse_x_new, double mouse_y_new) {
+    double mouse_x_old = mouse_x;
+    double mouse_y_old = mouse_y;
+
+    if (mouse_x_old >= 0) {
+        double dx = mouse_x_new - mouse_x_old;
+        double dy = mouse_y_new - mouse_y_old;
+
+        std::cout << "dx=" << dx << ", dy=" << dy << "\n";
+        double f = -0.005f;
+
+        euler_angles.y += f * dx;
+        euler_angles.x += f * dy;
+    }
+
+    mouse_x = mouse_x_new;
+    mouse_y = mouse_y_new;
+}
+
+void Camera::reset_mouse() {
+    mouse_x = -100;
+    mouse_y = -100;
+}
+
 }  // namespace splat
