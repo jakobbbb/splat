@@ -20,8 +20,12 @@ class App {
     void init_window();
     void draw();
     void process_inputs();
+    void load_data();
+    void load_shaders();
 
     uint32_t frame = 0;
+    GLuint vertex_buffer;
+    GLuint point_shader;
 };
 }  // namespace splat
 
