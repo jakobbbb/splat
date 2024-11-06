@@ -79,7 +79,7 @@ void App::draw() {
 
     glBindVertexArray(vao);
 
-    glDrawArrays(GL_POINTS, 0, 1);
+    glDrawArraysInstanced(GL_POINTS, 0, 1, 30);
 }
 
 }  // namespace splat
