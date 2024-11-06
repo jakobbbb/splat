@@ -1,0 +1,6 @@
+BasedOnStyle: Chromium
+ColumnLimit: 100
+IndentWidth: 4
+ContinuationIndentWidth: 8
+BinPackArguments: false
+BinPackParameters: false
