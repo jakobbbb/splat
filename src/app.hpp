@@ -25,6 +25,7 @@ class App {
 
     uint32_t frame = 0;
     GLuint vertex_buffer;
+    GLuint vao;
     GLuint point_shader;
 };
 }  // namespace splat

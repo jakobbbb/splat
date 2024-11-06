@@ -31,10 +31,21 @@ void App::init_window() {
 }
 
 void App::load_data() {
-    std::vector<float> data = {0.0f, 0.0f};
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    std::vector<float> data = {0.3f, 0.3f, 0.0f};
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, data.size(), data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0,                  // location = 0
+                          3,                  // attribute size
+                          GL_FLOAT,           // attribute type
+                          GL_FALSE,           // don't normalize
+                          3 * sizeof(float),  // stride
+                          (void*)0            // offset
+    );
+    glEnableVertexAttribArray(0);
 }
 
 void App::load_shaders() {
@@ -66,11 +77,8 @@ void App::draw() {
     glEnable(GL_PROGRAM_POINT_SIZE);
     glUseProgram(point_shader);
 
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    glBindVertexBuffer(0, vertex_buffer, 0, 0);
     glDrawArrays(GL_POINTS, 0, 1);
 }
 
