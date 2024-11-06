@@ -28,7 +28,6 @@ void Camera::update_rot(double mouse_x_new, double mouse_y_new) {
         double dx = mouse_x_new - mouse_x_old;
         double dy = mouse_y_new - mouse_y_old;
 
-        std::cout << "dx=" << dx << ", dy=" << dy << "\n";
         double f = -0.005f;
 
         euler_angles.y += f * dx;

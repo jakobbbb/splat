@@ -33,37 +33,62 @@ void App::init_window() {
 
 void App::load_data() {
     const char* ply_path =
-            "/mnt/wd/home/jakob/archive/splat_models/train/point_cloud/iteration_7000/"
+            "/mnt/wd/home/jakob/archive/splat_models/garden/point_cloud/iteration_30000/"
             "point_cloud.ply";
-    happly::PLYData plyIn(ply_path);
-    std::vector<std::array<double, 3>> vPos = plyIn.getVertexPositions();
-    std::cout << vPos.size() << "\n";
-    num_gaussians = vPos.size();
+    happly::PLYData ply(ply_path);
+    std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
+    num_gaussians = v_pos.size();
+
+    std::vector<float> f_dc_0 = ply.getElement("vertex").getProperty<float>("f_dc_0");
+    std::vector<float> f_dc_1 = ply.getElement("vertex").getProperty<float>("f_dc_1");
+    std::vector<float> f_dc_2 = ply.getElement("vertex").getProperty<float>("f_dc_2");
+
+    std::cout << "rgb??? " << f_dc_0[0] << "\n";
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     std::vector<float> data = {};
-    data.reserve(vPos.size());
+    data.reserve(2 * v_pos.size());
 
-    for (const auto& p : vPos) {
+    size_t i = 0;
+    for (const auto& p : v_pos) {
         data.push_back((float)p[0]);
         data.push_back((float)p[1]);
         data.push_back((float)p[2]);
+
+        glm::vec3 col = {f_dc_0[i], f_dc_1[i], f_dc_2[i]};
+
+        // https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#%E2%84%93_=_0
+        const float SH_0 = 0.28209479177387814f;
+
+        col = 0.5f + SH_0 * col;
+        data.push_back(col.x);
+        data.push_back(col.y);
+        data.push_back(col.z);
+
+        ++i;
     }
 
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0,                  // location = 0
+    glVertexAttribPointer(0,                  // location
                           3,                  // attribute size
                           GL_FLOAT,           // attribute type
                           GL_FALSE,           // don't normalize
-                          3 * sizeof(float),  // stride
+                          6 * sizeof(float),  // stride
                           (void*)0            // offset
     );
     glEnableVertexAttribArray(0);
-
+    glVertexAttribPointer(1,                          // location
+                          4,                          // attribute size
+                          GL_FLOAT,                   // attribute type
+                          GL_FALSE,                   // don't normalize
+                          6 * sizeof(float),          // stride
+                          (void*)(3 * sizeof(float))  // offset
+    );
+    glEnableVertexAttribArray(1);
 }
 
 void App::load_shaders() {
