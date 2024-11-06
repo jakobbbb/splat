@@ -11,7 +11,7 @@ out vec4 PassColor;
 void main() {
     gl_Position = proj * view * vec4(inPos, 1);
     //gl_Position.x -= 0.02 * gl_InstanceID;
-    gl_PointSize = 16.0;
+    gl_PointSize = 1.60;
 
     PassColor = inColor;
 }
