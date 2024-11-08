@@ -2,9 +2,12 @@
 #include "external/happly.h"
 #include "util.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL  // waow
+
 #include <cassert>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -92,7 +95,7 @@ void App::load_data(char* ply_path) {
                 values["scale_1"][i],
                 values["scale_2"][i],
         };
-        glm::mat4 scale_mat = glm::scale(glm::mat4{1.0f}, scale);
+        glm::mat4 scale_mat = glm::scale(glm::mat4(1.0f), scale);
 
         glm::quat rot = {
                 values["rot_0"][i],
@@ -100,9 +103,15 @@ void App::load_data(char* ply_path) {
                 values["rot_2"][i],
                 values["rot_3"][i],
         };
-        glm::mat4 rot_mat = glm::mat4(rot);
+        glm::mat4 rot_mat = glm::mat4(glm::mat3(rot));
 
         g.rot_scale = rot_mat * scale_mat;
+
+        auto sigma = g.rot_scale * glm::transpose(g.rot_scale);
+        std::cout << "rot q = " << glm::to_string(rot) << "\n";
+        std::cout << "rot = " << glm::to_string(rot_mat) << "\n";
+        std::cout << "scale = " << glm::to_string(scale_mat) << "\n";
+        std::cout << "sigma = " << glm::to_string(sigma) << "\n";
 
         data.push_back(g);
     }

@@ -6,6 +6,7 @@ uniform mat4 view;
 uniform mat4 proj;
 
 out vec4 PassColor;
+out mat3 PassSigma;
 
 struct Gaussian {
     vec3 pos;
@@ -49,6 +50,7 @@ void main() {
 
     // covariance matrix
     mat3 sigma = mat3(gaussian.rot_scale * transpose(gaussian.rot_scale));
+    PassSigma = sigma;
 
     // upper-left values of view matrix
     mat3 view3 = mat3(view);
@@ -72,5 +74,7 @@ void main() {
     //gl_Position = proj * view * vec4(inPos, 1);
     gl_Position = vec4(inPos, -1, 1);
 
-    PassColor = vec4(gaussian.color, gaussian.opacity);
+    int i = int(2 * inPos.x / 2);
+    int j = int(2 * inPos.y / 2);
+    PassColor = vec4(sigma2[i][j], 0, 1, gaussian.opacity);
 }
