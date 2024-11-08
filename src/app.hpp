@@ -28,6 +28,7 @@ class App {
     uint32_t frame = 0;
     GLuint vertex_buffer;
     GLuint vao;
+    GLuint ssbo_buf;
     GLuint point_shader;
     size_t num_gaussians;
 

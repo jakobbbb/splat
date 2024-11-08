@@ -83,24 +83,50 @@ void App::load_data(char* ply_path) {
         }
     }
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    // load into ssbo
+    glGenBuffers(1, &ssbo_buf);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
+    glBufferData(
+            GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(float), data.data(), GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_buf);
 
+    std::vector<float> verts = {-1, -1, 1, -1, 1, 1, -1, 1};
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
 
-    size_t offset = 0;
-    for (size_t i = 0; i < property_sizes.size(); ++i) {
-        glVertexAttribPointer(i,                                  // location
-                              property_sizes[i],                  // attribute size
-                              GL_FLOAT,                           // attribute type
-                              GL_FALSE,                           // don't normalize
-                              properties.size() * sizeof(float),  // stride
-                              (void*)(offset * sizeof(float))     // offset
-        );
-        glEnableVertexAttribArray(i);
-        offset += property_sizes[i];
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glVertexAttribPointer(0,                  // location
+                          2,                  // attribute size
+                          GL_FLOAT,           // attribute type
+                          GL_FALSE,           // don't normalize
+                          2 * sizeof(float),  // stride
+                          0                   // offset
+    );
+    glEnableVertexAttribArray(0);
+
+    const bool load_into_vbo = false;
+    if (load_into_vbo) {
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+
+        glGenBuffers(1, &vertex_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+
+        size_t offset = 0;
+        for (size_t i = 0; i < property_sizes.size(); ++i) {
+            glVertexAttribPointer(i,                                  // location
+                                  property_sizes[i],                  // attribute size
+                                  GL_FLOAT,                           // attribute type
+                                  GL_FALSE,                           // don't normalize
+                                  properties.size() * sizeof(float),  // stride
+                                  (void*)(offset * sizeof(float))     // offset
+            );
+            glEnableVertexAttribArray(i);
+            offset += property_sizes[i];
+        }
     }
 }
 
@@ -174,8 +200,9 @@ void App::draw() {
     glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);
 
     glBindVertexArray(vao);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
 
-    glDrawArrays(GL_POINTS, 0, num_gaussians);
+    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
 }
 
 }  // namespace splat
