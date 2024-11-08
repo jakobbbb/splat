@@ -11,8 +11,7 @@ struct Gaussian {
     vec3 pos;
     vec3 color;
     float opacity;
-    vec3 scale;
-    vec4 rot;
+    mat4 rot_scale;
 };
 
 layout(std430, binding = 0) buffer GaussianData {

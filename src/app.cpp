@@ -3,7 +3,10 @@
 #include "util.hpp"
 
 #include <cassert>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <iostream>
+#include <map>
 #include <vector>
 
 namespace splat {
@@ -52,42 +55,63 @@ void App::load_data(char* ply_path) {
             "rot_2",
             "rot_3",
     };
-    std::vector<size_t> property_sizes = {
-            3,  // x, y, z
-            4,  // color + opacity
-            3,  // scale
-            4,  // rotation
-    };
 
-    std::vector<std::vector<float>> values{};
+    std::map<std::string, std::vector<float>> values{};
 
-    std::vector<float> data = {};
-    data.reserve(num_gaussians * properties.size());
+    std::vector<Gaussian> data = {};
+    data.reserve(num_gaussians * sizeof(Gaussian));
 
     for (size_t i = 0; i < properties.size(); ++i) {
         auto property = properties[i];
-        values.emplace_back(ply.getElement("vertex").getProperty<float>(property));
+        values[property] = (ply.getElement("vertex").getProperty<float>(property));
     }
 
-    for (size_t i_gaussian = 0; i_gaussian < num_gaussians; ++i_gaussian) {
-        for (size_t i_property = 0; i_property < properties.size(); ++i_property) {
-            float value = values[i_property][i_gaussian];
+    for (size_t i = 0; i < num_gaussians; ++i) {
+        Gaussian g{};
 
-            if (properties[i_property][0] == 'f') {
-                // https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#%E2%84%93_=_0
-                const float SH_0 = 0.28209479177387814f;
-                value = 0.5f + SH_0 * value;
-            }
+        g.pos = {
+                values["x"][i],
+                values["y"][i],
+                values["z"][i],
+        };
 
-            data.push_back(value);
-        }
+        g.color = {
+                values["f_dc_0"][i],
+                values["f_dc_1"][i],
+                values["f_dc_2"][i],
+        };
+        // extract base color from spherical harmonics
+        const float SH_0 = 0.28209479177387814f;
+        g.color = 0.5f + SH_0 * g.color;
+        std::cout << "color: " << g.color.b << "\n";
+
+        g.opacity = values["opacity"][i];
+
+        glm::vec3 scale = {
+                values["scale_0"][i],
+                values["scale_1"][i],
+                values["scale_2"][i],
+        };
+        glm::mat4 scale_mat = glm::scale(glm::mat4{1.0f}, scale);
+
+        glm::quat rot = {
+                values["rot_0"][i],
+                values["rot_1"][i],
+                values["rot_2"][i],
+                values["rot_3"][i],
+        };
+        glm::mat4 rot_mat = glm::mat4(rot);
+
+        g.rot_scale = rot_mat * scale_mat;
+
+        data.push_back(g);
     }
 
     // load into ssbo
     glGenBuffers(1, &ssbo_buf);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
     glBufferData(
-            GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(float), data.data(), GL_DYNAMIC_COPY);
+            GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_buf);
 
     std::vector<float> verts = {-1, -1, 1, -1, 1, 1, -1, 1};
@@ -105,29 +129,6 @@ void App::load_data(char* ply_path) {
                           0                   // offset
     );
     glEnableVertexAttribArray(0);
-
-    const bool load_into_vbo = false;
-    if (load_into_vbo) {
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-
-        glGenBuffers(1, &vertex_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-
-        size_t offset = 0;
-        for (size_t i = 0; i < property_sizes.size(); ++i) {
-            glVertexAttribPointer(i,                                  // location
-                                  property_sizes[i],                  // attribute size
-                                  GL_FLOAT,                           // attribute type
-                                  GL_FALSE,                           // don't normalize
-                                  properties.size() * sizeof(float),  // stride
-                                  (void*)(offset * sizeof(float))     // offset
-            );
-            glEnableVertexAttribArray(i);
-            offset += property_sizes[i];
-        }
-    }
 }
 
 void App::load_shaders() {

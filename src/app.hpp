@@ -9,6 +9,14 @@
 int main(int argc, char** argv);
 
 namespace splat {
+
+struct Gaussian {
+    glm::vec3 pos;
+    glm::vec3 color;
+    float opacity;
+    glm::mat4 rot_scale;
+};
+
 class App {
    public:
     App(char* ply_path);
