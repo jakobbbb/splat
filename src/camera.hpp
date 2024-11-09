@@ -10,6 +10,9 @@ class Camera {
    public:
     glm::mat4 get_view() const;
     glm::mat4 get_proj() const;
+    glm::mat4 get_rot() const;
+    glm::vec3 forward() const;
+    glm::vec3 right() const;
     void translate(glm::vec3 delta);
     void update_rot(double mouse_x, double mouse_y);
     void reset_mouse();

@@ -162,16 +162,16 @@ void App::process_inputs() {
     }
 
     if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
-        cam.translate({0, 0, 1});
+        cam.translate(cam.forward());
     }
     if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
-        cam.translate({0, 0, -1});
+        cam.translate(-cam.forward());
     }
     if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-        cam.translate({1, 0, 0});
+        cam.translate(-cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-        cam.translate({-1, 0, 0});
+        cam.translate(cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS) {
         cam.translate({0, -1, 0});

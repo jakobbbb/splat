@@ -71,9 +71,10 @@ void main() {
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
-    //gl_Position = proj * view * vec4(inPos, 1);
-    gl_Position = vec4(inPos, -1, 1);
+    gl_Position = proj * view * vec4(inPos, -1, 1);
+    //gl_Position = vec4(inPos, -1, 1);
 
+    sigma2 = mat2(b1.xy, b2.xy);
     int i = int(2 * inPos.x / 2);
     int j = int(2 * inPos.y / 2);
     PassColor = vec4(sigma2[i][j], 0, 1, gaussian.opacity);

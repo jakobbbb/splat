@@ -7,15 +7,29 @@
 namespace splat {
 
 glm::mat4 Camera::get_view() const {
-    glm::quat rot{euler_angles};
-    glm::mat4 view_mat = glm::mat4_cast(glm::conjugate(rot));
-    return glm::translate(view_mat, pos);
+    return glm::translate(get_rot(), pos);
 }
 
 glm::mat4 Camera::get_proj() const {
     float aspect = (float)width / (float)height;
     return glm::perspective(glm::radians(90.0f), aspect, 0.1f, 1000.0f);
 }
+
+glm::mat4 Camera::get_rot() const {
+    glm::quat rot{euler_angles};
+    return glm::mat4_cast(glm::conjugate(rot));
+}
+
+glm::vec3 Camera::forward() const {
+    auto fwd = glm::vec4{0, 0, -1, 1};  // world forward
+    return -fwd * get_rot();
+}
+
+glm::vec3 Camera::right() const {
+    auto r = glm::vec4{1, 0, 0, 1};  // world right
+    return -r * get_rot();
+}
+
 
 void Camera::translate(glm::vec3 delta) {
     pos += speed * delta;
