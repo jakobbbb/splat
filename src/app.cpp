@@ -43,6 +43,7 @@ void App::load_data(char* ply_path) {
     happly::PLYData ply(ply_path);
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
     num_gaussians = v_pos.size();
+    std::cout << "Got " << num_gaussians << " gaussians\n";
 
     std::vector<std::string> properties = {
             "x",
@@ -193,7 +194,10 @@ void App::draw() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glUseProgram(point_shader);
 
     int w, h;
