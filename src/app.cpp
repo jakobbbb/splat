@@ -204,10 +204,13 @@ void App::draw() {
 
     auto proj = cam.get_proj();
     auto view = cam.get_view();
+    float viewport_size[] = {(float)w, (float)h};
     GLint loc_proj = glGetUniformLocation(point_shader, "proj");
     GLint loc_view = glGetUniformLocation(point_shader, "view");
+    GLint loc_viewport_size = glGetUniformLocation(point_shader, "viewport_size");
     glUniformMatrix4fv(loc_proj, 1, GL_FALSE, &proj[0][0]);
     glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);
+    glUniform2fv(loc_viewport_size, 1, viewport_size);
 
     glBindVertexArray(vao);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);

@@ -4,6 +4,7 @@ layout (location = 0) in vec2 inPos;
 
 uniform mat4 view;
 uniform mat4 proj;
+uniform vec2 viewport_size;
 
 out vec4 PassColor;
 out mat3 PassSigma;
@@ -74,8 +75,8 @@ void main() {
     gl_Position = proj * view * vec4(inPos, -1, 1);
     //gl_Position = vec4(inPos, -1, 1);
 
-    sigma2 = mat2(b1.xy, b2.xy);
     int i = int(2 * inPos.x / 2);
     int j = int(2 * inPos.y / 2);
-    PassColor = vec4(sigma2[i][j], 0, 1, gaussian.opacity);
+    float c = sigma2[i][j];
+    PassColor = vec4(c, -c, 0.5, 1);
 }
