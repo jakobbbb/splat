@@ -62,7 +62,7 @@ void main() {
 
     vec3 u = view3 * gaussian.pos.xyz;
 
-    vec4 pos2d = proj * vec4(u, 1);
+    vec4 pos2d = proj * view * gaussian.pos;
 
     mat3 jacobian = mat3(
             1/u.z, 0,     -u.x/(u.z * u.z),
@@ -75,7 +75,7 @@ void main() {
 
     mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
 
-    vec4 bases = 512 * get_basis(sigma2);
+    vec4 bases = get_basis(sigma2);
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 

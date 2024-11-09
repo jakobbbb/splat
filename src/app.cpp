@@ -111,8 +111,6 @@ void App::load_data(char* ply_path) {
         auto rot_scale = rot_mat * scale_mat;
         g.sigma = glm::mat4(rot_scale * glm::transpose(rot_scale));
 
-        std::cout << "sigma = " << glm::to_string(g.sigma) << "\n";
-
         data.push_back(g);
     }
 
@@ -123,10 +121,6 @@ void App::load_data(char* ply_path) {
     glBufferData(
             GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_buf);
-
-    for (auto const& el : data) {
-        std::cout << "    " << glm::to_string(el.sigma) << "\n";
-    }
 
     std::vector<float> verts = {-1, -1, 1, -1, 1, 1, -1, 1};
     glGenBuffers(1, &vertex_buffer);
@@ -222,7 +216,7 @@ void App::draw() {
 
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
 
-    if (frame == 1) {
+    if (frame % 100 == 0) {
         std::cout << "view: " << glm::to_string(view) << "\n";
         std::cout << "proj: " << glm::to_string(proj) << "\n";
         std::cout << "cam@: " << glm::to_string(cam.get_pos()) << "\n";
