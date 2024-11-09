@@ -18,6 +18,7 @@ App::App(char* ply_path) {
     init_window();
     load_data(ply_path);
     load_shaders();
+    std::cout << "ok\n";
 }
 
 void App::init_window() {
@@ -38,6 +39,7 @@ void App::init_window() {
 }
 
 void App::load_data(char* ply_path) {
+    std::cout << "Reading ply...\n";
     happly::PLYData ply(ply_path);
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
     num_gaussians = v_pos.size();
@@ -69,6 +71,7 @@ void App::load_data(char* ply_path) {
         values[property] = (ply.getElement("vertex").getProperty<float>(property));
     }
 
+    std::cout << "Extracting gaussians...\n";
     for (size_t i = 0; i < num_gaussians; ++i) {
         Gaussian g{};
 
@@ -86,7 +89,6 @@ void App::load_data(char* ply_path) {
         // extract base color from spherical harmonics
         const float SH_0 = 0.28209479177387814f;
         g.color = 0.5f + SH_0 * g.color;
-        std::cout << "color: " << g.color.b << "\n";
 
         g.opacity = values["opacity"][i];
 
@@ -105,17 +107,12 @@ void App::load_data(char* ply_path) {
         };
         glm::mat4 rot_mat = glm::mat4(glm::mat3(rot));
 
-        g.rot_scale = rot_mat * scale_mat;
-
-        auto sigma = g.rot_scale * glm::transpose(g.rot_scale);
-        std::cout << "rot q = " << glm::to_string(rot) << "\n";
-        std::cout << "rot = " << glm::to_string(rot_mat) << "\n";
-        std::cout << "scale = " << glm::to_string(scale_mat) << "\n";
-        std::cout << "sigma = " << glm::to_string(sigma) << "\n";
-
+        auto rot_scale = rot_mat * scale_mat;
+        g.sigma = rot_scale * glm::transpose(rot_scale);
         data.push_back(g);
     }
 
+    std::cout << "Loading ssbo...\n";
     // load into ssbo
     glGenBuffers(1, &ssbo_buf);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);

@@ -14,7 +14,7 @@ struct Gaussian {
     glm::vec3 pos;
     glm::vec3 color;
     float opacity;
-    glm::mat4 rot_scale;
+    glm::mat3 sigma;
 };
 
 class App {
