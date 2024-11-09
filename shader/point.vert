@@ -82,7 +82,7 @@ void main() {
 
     mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
 
-    vec4 bases = 0.02 * get_basis(sigma2);
+    vec4 bases = 0.025 * get_basis(sigma2);
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
