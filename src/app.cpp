@@ -141,9 +141,15 @@ void App::load_data(char* ply_path) {
 }
 
 void App::load_shaders() {
-    auto vert = util::load_shader("../shader/point.vert", GL_VERTEX_SHADER);
-    auto frag = util::load_shader("../shader/point.frag", GL_FRAGMENT_SHADER);
-    point_shader = util::link_shaders({vert, frag});
+    auto vert = util::load_shader("../shader/gaussian.vert", GL_VERTEX_SHADER);
+    auto frag = util::load_shader("../shader/gaussian.frag", GL_FRAGMENT_SHADER);
+    gaussian_shader = util::link_shaders({vert, frag});
+
+    auto vert_p = util::load_shader("../shader/point.vert", GL_VERTEX_SHADER);
+    auto frag_p = util::load_shader("../shader/point.frag", GL_FRAGMENT_SHADER);
+    point_shader = util::link_shaders({vert_p, frag_p});
+
+    shader = point_shader;
 }
 
 void App::run() {
@@ -188,17 +194,25 @@ void App::process_inputs() {
     if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
         cam.reset_mouse();
     }
+
+    if (glfwGetKey(win, GLFW_KEY_G) == GLFW_PRESS) {
+        shader = gaussian_shader;
+    }
+    if (glfwGetKey(win, GLFW_KEY_P) == GLFW_PRESS) {
+        shader = point_shader;
+    }
 }
 
 void App::draw() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glUseProgram(point_shader);
+    glUseProgram(shader);
 
     int w, h;
     glfwGetFramebufferSize(win, &w, &h);
@@ -207,9 +221,9 @@ void App::draw() {
     auto proj = cam.get_proj();
     auto view = cam.get_view();
     float viewport_size[] = {(float)w, (float)h};
-    GLint loc_proj = glGetUniformLocation(point_shader, "proj");
-    GLint loc_view = glGetUniformLocation(point_shader, "view");
-    GLint loc_viewport_size = glGetUniformLocation(point_shader, "viewport_size");
+    GLint loc_proj = glGetUniformLocation(shader, "proj");
+    GLint loc_view = glGetUniformLocation(shader, "view");
+    GLint loc_viewport_size = glGetUniformLocation(shader, "viewport_size");
     glUniformMatrix4fv(loc_proj, 1, GL_FALSE, &proj[0][0]);
     glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);
     glUniform2fv(loc_viewport_size, 1, viewport_size);
@@ -217,7 +231,11 @@ void App::draw() {
     glBindVertexArray(vao);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
 
-    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
+    if (shader == gaussian_shader) {
+        glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
+    } else {
+        glDrawArraysInstanced(GL_POINTS, 0, 1, num_gaussians);
+    }
 
     glm::vec2 focal{
         proj[0][0] * w * 0.5,

@@ -37,6 +37,8 @@ class App {
     GLuint vao;
     GLuint ssbo_buf;
     GLuint point_shader;
+    GLuint gaussian_shader;
+    GLuint shader;
     size_t num_gaussians;
 
     Camera cam;

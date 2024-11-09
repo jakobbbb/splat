@@ -20,86 +20,11 @@ layout(std430, binding = 0) buffer GaussianData {
     Gaussian gaussians[];
 };
 
-vec4 get_basis(mat2 sigma) {
-    float a = sigma[0][0];
-    float b = sigma[0][1];
-    float c = sigma[1][0];
-    float d = sigma[1][1];
-
-    float tr = a + d;
-    float det = a * d - b * c;
-
-    // eigenvalues
-    float s = sqrt((tr * tr) - (4 * det));
-    float lambda1 = 0.5 * (tr + s);
-    float lambda2 = 0.5 * (tr - s);
-
-    // eigenvectors
-    const float epsilon = 0.00001;
-
-    vec2 e1 = vec2(1, 0);
-    if (abs(c) > epsilon) {
-        e1 = vec2(lambda1 - d, c);
-    } else if (abs(b) > epsilon) {
-        e1 = vec2(b, lambda1 - a);
-    }
-    e1 = normalize(e1);
-
-    vec2 e2 = vec2(e1.y, -e1.x);
-
-    // basis vectors
-    vec2 b1 = sqrt(2 * lambda1) * e1;
-    vec2 b2 = sqrt(2 * lambda2) * e2;
-
-    return vec4(b1, b2);
-}
-
 void main() {
     Gaussian gaussian = gaussians[gl_InstanceID];
 
-    // upper-left values of view matrix
-    mat3 view3 = mat3(view);
-
-    vec3 u = view3 * gaussian.pos.xyz;
-
-    vec4 pos2d = proj * view * gaussian.pos;
-    u.z = pos2d.w;
-
-    vec2 focal = vec2(
-        proj[0][0] * viewport_size.x * 0.5,
-        proj[1][1] * viewport_size.y * 0.5
-    );
-    //focal = vec2(1.0, 1.0);
-
-    mat3 jacobian = mat3(
-            focal.x/u.z, 0,     -(focal.x * u.x)/(u.z * u.z),
-            0,     focal.y/u.z, -(focal.y * u.y)/(u.z * u.z),
-            0,     0,     0
-    );
-
-    mat3 t = view3 * jacobian;
-    mat3 sigma_prime = transpose(t) * mat3(gaussian.sigma) * t;
-
-    mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
-
-    vec4 bases = 0.025 * get_basis(sigma2);
-    vec2 b1 = bases.xy;
-    vec2 b2 = bases.zw;
-
-    //b1 = 512 * vec2(1, 1);
-    //b2 = 512 * vec2(-1, 1);
-
-    //gl_Position = proj * view * vec4(inPos, -1, 1);
-    vec2 center = pos2d.xy / pos2d.w;
-    //center = vec2(0, 0);
-    gl_Position = vec4(center
-            + (inPos.x * b1 / viewport_size)
-            + (inPos.y * b2 / viewport_size),
-            -1, 1);
-
+    vec4 p = proj * view * gaussian.pos;
+    gl_Position = vec4(p.xyz / p.w, 1);
+    gl_PointSize = 2;
     PassColor = vec4(gaussian.color.rgb, gaussian.color.a);
-    PassPosition = inPos;
-
-    //PassColor = vec4(b2.x, b2.y, 0, 1);
-    //PassColor = vec4(sigma_prime[2].xyz, 1);
 }
