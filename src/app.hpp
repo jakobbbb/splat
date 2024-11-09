@@ -11,10 +11,9 @@ int main(int argc, char** argv);
 namespace splat {
 
 struct Gaussian {
-    glm::vec3 pos;
-    glm::vec3 color;
-    float opacity;
-    glm::mat3 sigma;
+    glm::vec4 pos;
+    glm::vec4 color;
+    glm::mat4 sigma;
 };
 
 class App {

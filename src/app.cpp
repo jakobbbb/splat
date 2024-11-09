@@ -79,18 +79,19 @@ void App::load_data(char* ply_path) {
                 values["x"][i],
                 values["y"][i],
                 values["z"][i],
+                1.0f,
         };
 
         g.color = {
                 values["f_dc_0"][i],
                 values["f_dc_1"][i],
                 values["f_dc_2"][i],
+                values["opacity"][i],
         };
         // extract base color from spherical harmonics
         const float SH_0 = 0.28209479177387814f;
         g.color = 0.5f + SH_0 * g.color;
 
-        g.opacity = values["opacity"][i];
 
         glm::vec3 scale = {
                 values["scale_0"][i],
@@ -108,7 +109,10 @@ void App::load_data(char* ply_path) {
         glm::mat4 rot_mat = glm::mat4(glm::mat3(rot));
 
         auto rot_scale = rot_mat * scale_mat;
-        g.sigma = rot_scale * glm::transpose(rot_scale);
+        g.sigma = glm::mat4(rot_scale * glm::transpose(rot_scale));
+
+        std::cout << "sigma = " << glm::to_string(g.sigma) << "\n";
+
         data.push_back(g);
     }
 
@@ -119,6 +123,10 @@ void App::load_data(char* ply_path) {
     glBufferData(
             GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_buf);
+
+    for (auto const& el : data) {
+        std::cout << "    " << glm::to_string(el.sigma) << "\n";
+    }
 
     std::vector<float> verts = {-1, -1, 1, -1, 1, 1, -1, 1};
     glGenBuffers(1, &vertex_buffer);
@@ -213,6 +221,12 @@ void App::draw() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
 
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
+
+    if (frame == 1) {
+        std::cout << "view: " << glm::to_string(view) << "\n";
+        std::cout << "proj: " << glm::to_string(proj) << "\n";
+        std::cout << "cam@: " << glm::to_string(cam.get_pos()) << "\n";
+    }
 }
 
 }  // namespace splat

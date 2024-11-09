@@ -11,6 +11,7 @@ class Camera {
     glm::mat4 get_view() const;
     glm::mat4 get_proj() const;
     glm::mat4 get_rot() const;
+    glm::vec3 get_pos() const;
     glm::vec3 forward() const;
     glm::vec3 right() const;
     void translate(glm::vec3 delta);

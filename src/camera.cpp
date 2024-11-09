@@ -20,6 +20,10 @@ glm::mat4 Camera::get_rot() const {
     return glm::mat4_cast(glm::conjugate(rot));
 }
 
+glm::vec3 Camera::get_pos() const {
+    return pos;
+}
+
 glm::vec3 Camera::forward() const {
     auto fwd = glm::vec4{0, 0, -1, 1};  // world forward
     return -fwd * get_rot();

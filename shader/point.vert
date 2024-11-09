@@ -11,10 +11,9 @@ out mat3 PassSigma;
 out vec2 PassPosition;
 
 struct Gaussian {
-    vec3 pos;
-    vec3 color;
-    float opacity;
-    mat3 sigma;
+    vec4 pos;
+    vec4 color;
+    mat4 sigma;
 };
 
 layout(std430, binding = 0) buffer GaussianData {
@@ -61,9 +60,9 @@ void main() {
     // upper-left values of view matrix
     mat3 view3 = mat3(view);
 
-    vec4 u = view * vec4(gaussian.pos, 1);
+    vec3 u = view3 * gaussian.pos.xyz;
 
-    vec4 pos2d = proj * u;
+    vec4 pos2d = proj * vec4(u, 1);
 
     mat3 jacobian = mat3(
             1/u.z, 0,     -u.x/(u.z * u.z),
@@ -71,25 +70,21 @@ void main() {
             0,     0,     0
     );
 
-    mat3 p = view3 * jacobian;
-    mat3 sigma_prime = transpose(p) * gaussian.sigma * p;
+    mat3 t = view3 * jacobian;
+    mat3 sigma_prime = transpose(t) * mat3(gaussian.sigma) * t;
 
     mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
-    sigma2 = 100000 * mat2(
-        3, 2,
-        2, 3
-    );
 
-    vec4 bases = get_basis(sigma2);
+    vec4 bases = 512 * get_basis(sigma2);
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
-    //b1 = 128 * vec2(1, 1);
-    //b2 = 128 * vec2(-1, 1);
+    //b1 = 512 * vec2(1, 1);
+    //b2 = 512 * vec2(-1, 1);
 
     //gl_Position = proj * view * vec4(inPos, -1, 1);
     vec2 center = pos2d.xy / pos2d.w;
-    center = vec2(0, 0);
+    //center = vec2(0, 0);
     gl_Position = vec4(center
             + (inPos.x * b1 / viewport_size)
             + (inPos.y * b2 / viewport_size),
@@ -98,11 +93,11 @@ void main() {
     int i = int(2 * inPos.x / 2);
     int j = int(2 * inPos.y / 2);
 
-    PassColor = vec4(gaussian.color, gaussian.opacity);
+    PassColor = vec4(gaussian.color.rgb, gaussian.color.a);
 
     PassPosition = inPos;
 
     //PassColor = vec4(b2.x, b2.y, 0, 1);
     //gl_Position = vec4(inPos, -1, 1);
-    //PassColor = vec4(bases.x/2, bases.y/2, 0, 1);
+    //PassColor = vec4(sigma_prime[2].xyz, 1);
 }
