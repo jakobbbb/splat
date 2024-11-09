@@ -12,7 +12,7 @@ glm::mat4 Camera::get_view() const {
 
 glm::mat4 Camera::get_proj() const {
     float aspect = (float)width / (float)height;
-    return glm::perspective(glm::radians(120.0f), aspect, 0.1f, 1000.0f);
+    return glm::perspective(glm::radians(90.0f), aspect, 0.1f, 1000.0f);
 }
 
 glm::mat4 Camera::get_rot() const {

@@ -63,10 +63,17 @@ void main() {
     vec3 u = view3 * gaussian.pos.xyz;
 
     vec4 pos2d = proj * view * gaussian.pos;
+    u.z = pos2d.w;
+
+    vec2 focal = vec2(
+        proj[0][0] * viewport_size.x * 0.5,
+        proj[1][1] * viewport_size.y * 0.5
+    );
+    //focal = vec2(1.0, 1.0);
 
     mat3 jacobian = mat3(
-            1/u.z, 0,     -u.x/(u.z * u.z),
-            0,     1/u.z, -u.y/(u.z * u.z),
+            focal.x/u.z, 0,     -(focal.x * u.x)/(u.z * u.z),
+            0,     focal.y/u.z, -(focal.y * u.y)/(u.z * u.z),
             0,     0,     0
     );
 
@@ -90,14 +97,9 @@ void main() {
             + (inPos.y * b2 / viewport_size),
             -1, 1);
 
-    int i = int(2 * inPos.x / 2);
-    int j = int(2 * inPos.y / 2);
-
     PassColor = vec4(gaussian.color.rgb, gaussian.color.a);
-
     PassPosition = inPos;
 
     //PassColor = vec4(b2.x, b2.y, 0, 1);
-    //gl_Position = vec4(inPos, -1, 1);
     //PassColor = vec4(sigma_prime[2].xyz, 1);
 }

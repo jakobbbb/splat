@@ -193,7 +193,6 @@ void App::draw() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glEnable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glUseProgram(point_shader);
 
@@ -216,10 +215,15 @@ void App::draw() {
 
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
 
+    glm::vec2 focal{
+        proj[0][0] * w * 0.5,
+        proj[1][1] * h * 0.5
+    };
     if (frame % 100 == 0) {
         std::cout << "view: " << glm::to_string(view) << "\n";
         std::cout << "proj: " << glm::to_string(proj) << "\n";
         std::cout << "cam@: " << glm::to_string(cam.get_pos()) << "\n";
+        std::cout << "foca: " << glm::to_string(focal) << "\n";
     }
 }
 

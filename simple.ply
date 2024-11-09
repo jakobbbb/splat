@@ -1,6 +1,6 @@
 ply
 format ascii 1.0
-element vertex 1
+element vertex 2
 property float x
 property float y
 property float z
@@ -16,4 +16,5 @@ property float rot_1
 property float rot_2
 property float rot_3
 end_header
-0 0 -1   2.0 0.0 0.0   0.5   512 512 512    0 0 0 0
+1 0 -1  2.0 0.0 0.0   0.5   1 1 1    0 0 0 0
+-1 0 -2  0.0 0.0 2.0   0.5   1 1 1    0 0 0 0
