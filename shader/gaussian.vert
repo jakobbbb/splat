@@ -47,11 +47,15 @@ vec4 get_basis(mat2 sigma) {
 
     vec2 e2 = vec2(e1.y, -e1.x);
 
+    const float max_size = 512;
+    lambda1 = max(max_size, lambda1);
+    lambda2 = max(max_size, lambda2);
+
     // basis vectors
     vec2 b1 = sqrt(2 * lambda1) * e1;
     vec2 b2 = sqrt(2 * lambda2) * e2;
 
-    return vec4(b1, b2);
+    return 0.1 * vec4(b1, b2);
 }
 
 void main() {
@@ -82,7 +86,7 @@ void main() {
 
     mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
 
-    vec4 bases = 0.025 * get_basis(sigma2);
+    vec4 bases = get_basis(sigma2);
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
@@ -96,6 +100,7 @@ void main() {
             + (inPos.x * b1 / viewport_size)
             + (inPos.y * b2 / viewport_size),
             -1, 1);
+    gl_Position.z = pos2d.z / pos2d.w;
 
     PassColor = vec4(gaussian.color.rgb, gaussian.color.a);
     PassPosition = inPos;

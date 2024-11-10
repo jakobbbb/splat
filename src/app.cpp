@@ -78,7 +78,7 @@ void App::load_data(char* ply_path) {
 
         g.pos = {
                 values["x"][i],
-                values["y"][i],
+                -values["y"][i],
                 values["z"][i],
                 1.0f,
         };
@@ -87,11 +87,12 @@ void App::load_data(char* ply_path) {
                 values["f_dc_0"][i],
                 values["f_dc_1"][i],
                 values["f_dc_2"][i],
-                values["opacity"][i],
+                0.0f,
         };
         // extract base color from spherical harmonics
         const float SH_0 = 0.28209479177387814f;
         g.color = 0.5f + SH_0 * g.color;
+        g.color.a = 1.0f / (1.0f + exp(-(values["opacity"][i])));
 
 
         glm::vec3 scale = {
@@ -123,7 +124,7 @@ void App::load_data(char* ply_path) {
             GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_buf);
 
-    std::vector<float> verts = {-1, -1, 1, -1, 1, 1, -1, 1};
+    std::vector<float> verts = {-2, -2, 2, -2, 2, 2, -2, 2};
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
@@ -211,6 +212,8 @@ void App::draw() {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_ADD);
 
     glUseProgram(shader);
 
