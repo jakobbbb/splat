@@ -35,6 +35,7 @@ void App::init_window() {
         glViewport(0, 0, width, height);
     };
     glfwSetFramebufferSizeCallback(win, resize_callback);
+    glfwSwapInterval(0);
 
     glewInit();
 }
@@ -283,12 +284,6 @@ void App::draw() {
         proj[0][0] * w * 0.5,
         proj[1][1] * h * 0.5
     };
-    if (frame % 100 == 0) {
-        std::cout << "view: " << glm::to_string(view) << "\n";
-        std::cout << "proj: " << glm::to_string(proj) << "\n";
-        std::cout << "cam@: " << glm::to_string(cam.get_pos()) << "\n";
-        std::cout << "foca: " << glm::to_string(focal) << "\n";
-    }
 }
 
 }  // namespace splat
