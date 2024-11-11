@@ -153,6 +153,41 @@ void App::load_data(char* ply_path) {
     glEnableVertexAttribArray(0);
 }
 
+void App::csort() {
+    glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
+    const uint16_t max_dist = 65534;
+
+    std::vector<size_t> count(max_dist + 1, 0);
+
+    std::vector<uint16_t> distances{};
+    distances.reserve(num_gaussians);
+
+    std::vector<size_t> output(num_gaussians, 0);
+
+    for (auto const& g : data) {
+        float d = glm::abs(glm::length(-cam_pos - g.pos));
+        uint16_t d_int = glm::min(100 * d * d, (float)max_dist-1);
+        ++count[d_int];
+        distances.push_back(d_int);
+    }
+
+    for (int i = 1; i < count.size(); ++i) {
+        count[i] = count[i] + count[i - 1];
+    }
+
+    for (int i = num_gaussians - 1; i >= 0; --i) {
+        uint16_t j = distances[i];
+        --count[j];
+        output[count[j]] = i;
+    }
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,
+                 output.size() * sizeof(int),
+                 output.data(),
+                 GL_DYNAMIC_COPY);
+}
+
 void App::sort() {
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
     auto comp = [&](int i1, int i2) {
@@ -197,6 +232,9 @@ void App::run() {
 void App::process_inputs() {
     if (glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS) {
         sort();
+    }
+    if (glfwGetKey(win, GLFW_KEY_C) == GLFW_PRESS) {
+        csort();
     }
 
     float speed = 0.2f;
