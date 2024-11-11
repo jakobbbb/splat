@@ -16,5 +16,5 @@ property float rot_1
 property float rot_2
 property float rot_3
 end_header
-1 0 -1  20 0.0 0.0   1   0.2 0.2 0.2    0 0 0 0
+1 0 -1  20 0.0 0.0   1   0.2 0.2 0.2    0.001 0.11 0.011 0.001
 -1 0 -2  0.0 0.0 20   1   0.1 0.2 1    0.601 0.576 0.554 0.01

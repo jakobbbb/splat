@@ -81,12 +81,12 @@ void main() {
             0,     0,     0
     );
 
-    mat3 t = view3 * jacobian;
-    mat3 sigma_prime = transpose(t) * mat3(gaussian.sigma) * t;
+    mat3 t = jacobian * view3;
+    mat3 sigma_prime = t * mat3(gaussian.sigma) * transpose(t);
 
     mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
 
-    vec4 bases = 2 * get_basis(sigma2);
+    vec4 bases = get_basis(sigma2);
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
@@ -97,8 +97,8 @@ void main() {
     vec2 center = pos2d.xy / pos2d.w;
     //center = vec2(0, 0);
     gl_Position = vec4(center
-            + (inPos.x * b1 / viewport_size)
-            + (inPos.y * b2 / viewport_size),
+            + (inPos.x * b1) / (0.5 * viewport_size)
+            + (inPos.y * b2) / (0.5 * viewport_size),
             -1, 1);
     gl_Position.z = pos2d.z / pos2d.w;
 
