@@ -4,6 +4,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL  // waow
 
+#include <algorithm>
 #include <cassert>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -64,7 +65,6 @@ void App::load_data(char* ply_path) {
 
     std::map<std::string, std::vector<float>> values{};
 
-    std::vector<Gaussian> data = {};
     data.reserve(num_gaussians * sizeof(Gaussian));
 
     for (size_t i = 0; i < properties.size(); ++i) {
@@ -123,7 +123,6 @@ void App::load_data(char* ply_path) {
             GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gauss_ssbo);
 
-    std::vector<int> indices = {};
     indices.reserve(num_gaussians);
     for (int i = 0; i < num_gaussians; ++i) {
         indices.push_back(i);
@@ -153,6 +152,24 @@ void App::load_data(char* ply_path) {
     glEnableVertexAttribArray(0);
 }
 
+void App::sort() {
+    auto comp = [&](int i1, int i2) {
+        Gaussian g1 = data[i1];
+        Gaussian g2 = data[i2];
+        glm::vec3 cam_pos = cam.get_pos();
+        float d1 = glm::length(cam_pos - glm::vec3(g1.pos));
+        float d2 = glm::length(cam_pos - glm::vec3(g2.pos));
+        return d1 > d2;
+    };
+    std::sort(indices.begin(), indices.end(), comp);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,
+                 indices.size() * sizeof(int),
+                 indices.data(),
+                 GL_DYNAMIC_COPY);
+}
+
 void App::load_shaders() {
     auto vert = util::load_shader("../shader/gaussian.vert", GL_VERTEX_SHADER);
     auto frag = util::load_shader("../shader/gaussian.frag", GL_FRAGMENT_SHADER);
@@ -176,6 +193,10 @@ void App::run() {
 }
 
 void App::process_inputs() {
+    if (glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS) {
+        sort();
+    }
+
     if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(win, GLFW_TRUE);
     }

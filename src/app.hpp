@@ -5,6 +5,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <vector>
 
 int main(int argc, char** argv);
 
@@ -31,6 +32,11 @@ class App {
     void process_inputs();
     void load_data(char* ply_path);
     void load_shaders();
+
+    std::vector<Gaussian> data = {};
+
+    std::vector<int> indices = {};
+    void sort();
 
     uint32_t frame = 0;
     GLuint vertex_buffer;
