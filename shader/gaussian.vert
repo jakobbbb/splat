@@ -69,15 +69,11 @@ void main() {
     vec4 pos2d = proj * view * gaussian.pos;
     u.z = pos2d.w;
 
-    vec2 focal = vec2(
-        proj[0][0] * viewport_size.x * 0.5,
-        proj[1][1] * viewport_size.y * 0.5
-    );
-    //focal = vec2(1.0, 1.0);
+    float focal = proj[0][0] * viewport_size.x * 0.5;
 
     mat3 jacobian = mat3(
-            focal.x/u.z, 0,     -(focal.x * u.x)/(u.z * u.z),
-            0,     focal.y/u.z, -(focal.y * u.y)/(u.z * u.z),
+            focal/u.z, 0,     -(focal * u.x)/(u.z * u.z),
+            0,     focal/u.z, -(focal * u.y)/(u.z * u.z),
             0,     0,     0
     );
 

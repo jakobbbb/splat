@@ -34,6 +34,9 @@ glm::vec3 Camera::right() const {
     return -r * get_rot();
 }
 
+glm::vec3 Camera::up() const {
+    return glm::vec3{0, 1, 0};
+}
 
 void Camera::translate(glm::vec3 delta) {
     pos += speed * delta;

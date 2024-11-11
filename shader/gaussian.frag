@@ -11,5 +11,5 @@ void main() {
     float A = -dot(f * PassPosition, f * PassPosition);
     if (A < -4.0) discard;
     float B = exp(A) * PassColor.a;
-    FragColor = vec4(PassColor.rgb, B);
+    FragColor = B * vec4(PassColor.rgb, 1);
 }

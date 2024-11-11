@@ -78,7 +78,7 @@ void App::load_data(char* ply_path) {
 
         g.pos = {
                 values["x"][i],
-                -values["y"][i],
+                values["y"][i],
                 values["z"][i],
                 1.0f,
         };
@@ -110,7 +110,7 @@ void App::load_data(char* ply_path) {
         glm::mat4 rot_mat = glm::mat4(glm::mat3(rot));
 
         auto rot_scale = rot_mat * scale_mat;
-        g.sigma = glm::mat4(rot_scale * glm::transpose(rot_scale));
+        g.sigma = rot_scale * glm::transpose(rot_scale);
 
         data.push_back(g);
     }
@@ -180,10 +180,10 @@ void App::process_inputs() {
         cam.translate(cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        cam.translate({0, -1, 0});
+        cam.translate(cam.up());
     }
     if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        cam.translate({0, 1, 0});
+        cam.translate(-cam.up());
     }
 
     if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
@@ -208,10 +208,9 @@ void App::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_DST_ALPHA, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_ADD);
 
     glUseProgram(shader);
