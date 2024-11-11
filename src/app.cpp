@@ -153,13 +153,14 @@ void App::load_data(char* ply_path) {
 }
 
 void App::sort() {
+    glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
     auto comp = [&](int i1, int i2) {
-        Gaussian g1 = data[i1];
-        Gaussian g2 = data[i2];
-        glm::vec3 cam_pos = cam.get_pos();
-        float d1 = glm::length(cam_pos - glm::vec3(g1.pos));
-        float d2 = glm::length(cam_pos - glm::vec3(g2.pos));
-        return d1 > d2;
+        // Gaussian g1 = data[i1];
+        // Gaussian g2 = data[i2];
+        // glm::vec3 cam_pos = cam.get_pos();
+        // float d1 = glm::length(cam_pos - glm::vec3(g1.pos));
+        // float d2 = glm::length(cam_pos - glm::vec3(g2.pos));
+        return 0 > (glm::length(-cam_pos - data[i1].pos) - glm::length(-cam_pos - data[i2].pos));
     };
     std::sort(indices.begin(), indices.end(), comp);
 
