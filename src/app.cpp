@@ -198,27 +198,32 @@ void App::process_inputs() {
         sort();
     }
 
+    float speed = 0.2f;
+    if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        speed = 1.0f;
+    }
+
     if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(win, GLFW_TRUE);
     }
 
     if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
-        cam.translate(cam.forward());
+        cam.translate(speed * cam.forward());
     }
     if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
-        cam.translate(-cam.forward());
+        cam.translate(-speed * cam.forward());
     }
     if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-        cam.translate(-cam.right());
+        cam.translate(-speed * cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-        cam.translate(cam.right());
+        cam.translate(speed * cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        cam.translate(cam.up());
+        cam.translate(speed * cam.up());
     }
     if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        cam.translate(-cam.up());
+        cam.translate(-speed * cam.up());
     }
 
     if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
