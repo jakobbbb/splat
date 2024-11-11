@@ -20,6 +20,11 @@ layout(std430, binding = 0) buffer GaussianData {
     Gaussian gaussians[];
 };
 
+layout(std430, binding = 1) buffer Indices {
+    int indices[];
+};
+
+
 vec4 get_basis(mat2 sigma) {
     float a = sigma[0][0];
     float b = sigma[0][1];
@@ -59,7 +64,7 @@ vec4 get_basis(mat2 sigma) {
 }
 
 void main() {
-    Gaussian gaussian = gaussians[gl_InstanceID];
+    Gaussian gaussian = gaussians[indices[gl_InstanceID]];
 
     // upper-left values of view matrix
     mat3 view3 = mat3(view);

@@ -20,6 +20,10 @@ layout(std430, binding = 0) buffer GaussianData {
     Gaussian gaussians[];
 };
 
+layout(std430, binding = 1) buffer Indices {
+    int indices[];
+};
+
 void main() {
     Gaussian gaussian = gaussians[gl_InstanceID];
 

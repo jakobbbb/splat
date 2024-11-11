@@ -35,7 +35,8 @@ class App {
     uint32_t frame = 0;
     GLuint vertex_buffer;
     GLuint vao;
-    GLuint ssbo_buf;
+    GLuint gauss_ssbo;
+    GLuint index_ssbo;
     GLuint point_shader;
     GLuint gaussian_shader;
     GLuint shader;

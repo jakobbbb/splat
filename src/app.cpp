@@ -117,11 +117,24 @@ void App::load_data(char* ply_path) {
 
     std::cout << "Loading ssbo...\n";
     // load into ssbo
-    glGenBuffers(1, &ssbo_buf);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
+    glGenBuffers(1, &gauss_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, gauss_ssbo);
     glBufferData(
             GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_buf);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gauss_ssbo);
+
+    std::vector<int> indices = {};
+    indices.reserve(num_gaussians);
+    for (int i = 0; i < num_gaussians; ++i) {
+        indices.push_back(i);
+    }
+    glGenBuffers(1, &index_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,
+                 indices.size() * sizeof(int),
+                 indices.data(),
+                 GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, index_ssbo);
 
     std::vector<float> verts = {-2, -2, 2, -2, 2, 2, -2, 2};
     glGenBuffers(1, &vertex_buffer);
@@ -230,7 +243,8 @@ void App::draw() {
     glUniform2fv(loc_viewport_size, 1, viewport_size);
 
     glBindVertexArray(vao);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_buf);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gauss_ssbo);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, index_ssbo);
 
     if (shader == gaussian_shader) {
         glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
