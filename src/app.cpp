@@ -94,11 +94,10 @@ void App::load_data(char* ply_path) {
         g.color = 0.5f + SH_0 * g.color;
         g.color.a = 1.0f / (1.0f + exp(-(values["opacity"][i])));
 
-
         glm::vec3 scale = {
-                values["scale_0"][i],
-                values["scale_1"][i],
-                values["scale_2"][i],
+                glm::exp(values["scale_0"][i]),
+                glm::exp(values["scale_1"][i]),
+                glm::exp(values["scale_2"][i]),
         };
         glm::mat4 scale_mat = glm::scale(glm::mat4(1.0f), scale);
 

@@ -7,9 +7,11 @@ in vec2 PassPosition;
 out vec4 FragColor;
 
 void main() {
-    int f = 16;
+    FragColor = vec4(PassColor.rgb, 1);
+    //return;
+    int f = 1;
     float A = -dot(f * PassPosition, f * PassPosition);
-    if (A < -16.0) discard;
+    if (A < -4.0) discard;
     float B = exp(A) * PassColor.a;
     FragColor = vec4(PassColor.rgb, B);
 }
