@@ -45,7 +45,7 @@ void App::load_data(char* ply_path) {
     happly::PLYData ply(ply_path);
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
     num_gaussians = v_pos.size();
-    std::cout << "Got " << num_gaussians << " gaussians\n";
+    std::cout << "Got " << num_gaussians << " gaussians (" << num_gaussians * sizeof(Gaussian) / 1e6 << "MB)\n";
 
     std::vector<std::string> properties = {
             "x",
@@ -66,7 +66,7 @@ void App::load_data(char* ply_path) {
 
     std::map<std::string, std::vector<float>> values{};
 
-    data.reserve(num_gaussians * sizeof(Gaussian));
+    data.reserve(num_gaussians);
 
     for (size_t i = 0; i < properties.size(); ++i) {
         auto property = properties[i];
