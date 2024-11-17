@@ -241,6 +241,7 @@ void App::process_inputs() {
     if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         speed = 1.0f;
     }
+    speed *= 0.01f;
 
     if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(win, GLFW_TRUE);

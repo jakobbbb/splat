@@ -7,3 +7,7 @@ add_executable(splat
 target_link_libraries(splat
     ${LIBRARIES}
 )
+
+add_executable(analyze_ply
+    analyze_ply.cpp
+)
