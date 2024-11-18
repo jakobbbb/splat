@@ -45,6 +45,7 @@ void App::init_window() {
  * Disregards view-dependent spherical harmonic colors.
  */
 void App::load_data(char* ply_path) {
+
     std::cout << "Reading ply...\n";
     happly::PLYData ply(ply_path);
     std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
@@ -76,6 +77,11 @@ void App::load_data(char* ply_path) {
         auto property = properties[i];
         values[property] = (ply.getElement("vertex").getProperty<float>(property));
     }
+
+    bounds = {
+            {values["x"][0], values["y"][0], values["z"][0]},
+            {values["x"][0], values["y"][0], values["z"][0]},
+    };
 
     std::cout << "Extracting gaussians...\n";
     for (size_t i = 0; i < num_gaussians; ++i) {
@@ -118,7 +124,20 @@ void App::load_data(char* ply_path) {
         g.sigma = rot_scale * glm::transpose(rot_scale);
 
         data.push_back(g);
+
+        // update bounds
+        for (int i = 0; i < 2; ++i) {
+            bounds.first.x = glm::min(bounds.first.x, g.pos.x);
+            bounds.first.y = glm::min(bounds.first.y, g.pos.y);
+            bounds.first.z = glm::min(bounds.first.z, g.pos.z);
+            bounds.second.x = glm::max(bounds.second.x, g.pos.x);
+            bounds.second.y = glm::max(bounds.second.y, g.pos.y);
+            bounds.second.z = glm::max(bounds.second.z, g.pos.z);
+        }
     }
+
+    std::cout << "Bounds:  min=" << glm::to_string(bounds.first)
+              << ", max=" << glm::to_string(bounds.second) << "\n";
 
     std::cout << "Loading ssbo...\n";
 
@@ -167,19 +186,21 @@ void App::load_data(char* ply_path) {
  */
 void App::csort() {
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    const size_t max_dist = 65534;
+    const size_t n_buckets = 65534;
 
-    std::vector<size_t> count(max_dist + 1, 0);
+    std::vector<size_t> count(n_buckets + 1, 0);
 
     std::vector<size_t> distances{};
     distances.reserve(num_gaussians);
 
     std::vector<int> output(num_gaussians, 0);
 
+    float max_dist = 1.2f * glm::distance(bounds.first, bounds.second);
+
     for (auto const& g : data) {
         float d = glm::abs(glm::length(-cam_pos - g.pos));
-        // Squaring `d` to get higher resolution near the camera.
-        size_t d_int = glm::min(100 * d * d, (float)max_dist-1);
+        float d_normalized = n_buckets * glm::sqrt(d / max_dist);  // between 0 and n_buckets
+        size_t d_int = glm::min(d_normalized, (float)n_buckets - 1);
         ++count[d_int];
         distances.push_back(d_int);
     }

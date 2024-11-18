@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <utility>
 
 int main(int argc, char** argv);
 
@@ -39,6 +40,7 @@ class App {
     void load_shaders();
 
     std::vector<Gaussian> data = {};
+    std::pair<glm::vec3, glm::vec3> bounds;
 
     std::vector<int> indices = {};
     void sort();
