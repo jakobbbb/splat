@@ -24,8 +24,18 @@ int main(int argc, char** argv) {
         };
         float min = glm::min(glm::min(scale.x, scale.y), scale.z);
         float max = glm::max(glm::max(scale.x, scale.y), scale.z);
+
+        float mid = min;
+        for (int i = 0; i < 2; ++i) {
+            if (min < scale[i] && scale[i] < max) {
+                mid = scale[i];
+            }
+        }
+
         min /= max;
+        mid /= max;
         std::cout << min << ",min\n";
+        std::cout << mid << ",mid\n";
         //std::cout << max << ",max\n";
     }
 }
