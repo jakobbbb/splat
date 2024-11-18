@@ -71,13 +71,9 @@ vec4 get_basis(mat2 sigma) {
 void main() {
     Gaussian gaussian = gaussians[indices[gl_InstanceID]];
 
-    // upper-left values of view matrix
-    mat3 view3 = mat3(view);
-
-    vec3 u = view3 * gaussian.pos.xyz;
-
-    vec4 pos2d = proj * view * gaussian.pos;
-    u.z = pos2d.w;
+    // Position in view space
+    vec4 u = view * gaussian.pos;
+    u /= u.w;
 
     float focal = proj[0][0] * viewport_size.x * 0.5;
 
@@ -88,7 +84,7 @@ void main() {
     );
 
     // Calculate 2D covariance matrix
-    mat3 t = jacobian * view3;
+    mat3 t = jacobian * mat3(view);
     mat3 sigma_prime = t * mat3(gaussian.sigma) * transpose(t);
     mat2 sigma2 = mat2(sigma_prime);  // take upper left
 
@@ -97,6 +93,8 @@ void main() {
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
+    // Position in screen space
+    vec4 pos2d = proj * u;
     vec2 center = pos2d.xy / pos2d.w;
 
     gl_Position = vec4(center
