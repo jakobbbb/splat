@@ -221,11 +221,13 @@ void App::load_shaders() {
 
 void App::run() {
     while (!glfwWindowShouldClose(win)) {
+        time = glfwGetTime();
         glfwSwapBuffers(win);
         glfwPollEvents();
         process_inputs();
         draw();
         ++frame;
+        time_delta = glfwGetTime() - time;
     }
 }
 
@@ -237,11 +239,11 @@ void App::process_inputs() {
         csort();
     }
 
-    float speed = 0.2f;
+    float speed = 1.5f;
     if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        speed = 1.0f;
+        speed *= 5.0f;
     }
-    speed *= 0.01f;
+    speed *= time_delta;
 
     if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(win, GLFW_TRUE);

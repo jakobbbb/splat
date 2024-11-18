@@ -27,6 +27,8 @@ class App {
 
    private:
     GLFWwindow* win;
+    double time;
+    double time_delta;
     void init_window();
     void draw();
     void process_inputs();
