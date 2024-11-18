@@ -35,11 +35,15 @@ void App::init_window() {
         glViewport(0, 0, width, height);
     };
     glfwSetFramebufferSizeCallback(win, resize_callback);
-    glfwSwapInterval(0);
+    glfwSwapInterval(0);  // disable vsync
 
     glewInit();
 }
 
+/**
+ * Load data from .ply file into an SSBO that is an array of `Gaussian` structs.
+ * Disregards view-dependent spherical harmonic colors.
+ */
 void App::load_data(char* ply_path) {
     std::cout << "Reading ply...\n";
     happly::PLYData ply(ply_path);
@@ -117,13 +121,16 @@ void App::load_data(char* ply_path) {
     }
 
     std::cout << "Loading ssbo...\n";
-    // load into ssbo
+
+    // Create and fill Gaussian SSBO
     glGenBuffers(1, &gauss_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, gauss_ssbo);
     glBufferData(
             GL_SHADER_STORAGE_BUFFER, data.size() * sizeof(Gaussian), data.data(), GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gauss_ssbo);
 
+    // Create and fill index SSBO.  After sorting, this will contain indices into the Gaussian SSBO,
+    // in order.
     indices.reserve(num_gaussians);
     for (int i = 0; i < num_gaussians; ++i) {
         indices.push_back(i);
@@ -136,6 +143,7 @@ void App::load_data(char* ply_path) {
                  GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, index_ssbo);
 
+    // Create vertex buffer with a single screen-space quad.
     std::vector<float> verts = {-2, -2, 2, -2, 2, 2, -2, 2};
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -144,7 +152,7 @@ void App::load_data(char* ply_path) {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glVertexAttribPointer(0,                  // location
-                          2,                  // attribute size
+                          2,                  // attribute size (2D position on screen)
                           GL_FLOAT,           // attribute type
                           GL_FALSE,           // don't normalize
                           2 * sizeof(float),  // stride
@@ -153,6 +161,10 @@ void App::load_data(char* ply_path) {
     glEnableVertexAttribArray(0);
 }
 
+/*
+ * Sort Gaussians based on distance to camera using counting sort.  Because the key for counting
+ * sort needs to be an integer, we cannot guarantee exact sorting.
+ */
 void App::csort() {
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
     const size_t max_dist = 65534;
@@ -166,6 +178,7 @@ void App::csort() {
 
     for (auto const& g : data) {
         float d = glm::abs(glm::length(-cam_pos - g.pos));
+        // Squaring `d` to get higher resolution near the camera.
         size_t d_int = glm::min(100 * d * d, (float)max_dist-1);
         ++count[d_int];
         distances.push_back(d_int);
@@ -188,14 +201,12 @@ void App::csort() {
                  GL_DYNAMIC_COPY);
 }
 
+/*
+ * Naive and slow sorting of Gaussians using `std::sort`.
+ */
 void App::sort() {
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
     auto comp = [&](int i1, int i2) {
-        // Gaussian g1 = data[i1];
-        // Gaussian g2 = data[i2];
-        // glm::vec3 cam_pos = cam.get_pos();
-        // float d1 = glm::length(cam_pos - glm::vec3(g1.pos));
-        // float d2 = glm::length(cam_pos - glm::vec3(g2.pos));
         return 0 > (glm::length(-cam_pos - data[i1].pos) - glm::length(-cam_pos - data[i2].pos));
     };
     std::sort(indices.begin(), indices.end(), comp);
@@ -290,7 +301,7 @@ void App::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    //glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFuncSeparate(GL_DST_ALPHA, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_ADD);
@@ -304,6 +315,8 @@ void App::draw() {
     auto proj = cam.get_proj();
     auto view = cam.get_view();
     float viewport_size[] = {(float)w, (float)h};
+
+    // Upload uniforms
     GLint loc_proj = glGetUniformLocation(shader, "proj");
     GLint loc_view = glGetUniformLocation(shader, "view");
     GLint loc_viewport_size = glGetUniformLocation(shader, "viewport_size");
@@ -311,23 +324,22 @@ void App::draw() {
     glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);
     glUniform2fv(loc_viewport_size, 1, viewport_size);
 
+    // Bind vertex buffer, Gaussian SSBO, and index SSBO
     glBindVertexArray(vao);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gauss_ssbo);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, index_ssbo);
 
     if (shader == gaussian_shader) {
+        // Instanced draw call for N screen-space quads.
         glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, num_gaussians);
     } else {
+        // Instanced draw call for N points.
         glDrawArraysInstanced(GL_POINTS, 0, 1, num_gaussians);
     }
-
-    glm::vec2 focal{
-        proj[0][0] * w * 0.5,
-        proj[1][1] * h * 0.5
-    };
 }
 
 }  // namespace splat
+
 
 int main(int argc, char** argv) {
     if (argc < 2) {

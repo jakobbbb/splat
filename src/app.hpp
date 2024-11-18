@@ -12,8 +12,11 @@ int main(int argc, char** argv);
 namespace splat {
 
 struct Gaussian {
+    // X, Y, Z, W=1
     glm::vec4 pos;
+    // R, G, B, A
     glm::vec4 color;
+    // 3D Covariance, as mat4 for alignment
     glm::mat4 sigma;
 };
 

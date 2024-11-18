@@ -11,20 +11,25 @@ out mat3 PassSigma;
 out vec2 PassPosition;
 
 struct Gaussian {
-    vec4 pos;
-    vec4 color;
-    mat4 sigma;
+    vec4 pos;    // X, Y, Z, W=1
+    vec4 color;  // R, G, B, A
+    mat4 sigma;  // 3D Covariance, as mat4 for alignment
 };
 
+// Gaussian SSBO
 layout(std430, binding = 0) buffer GaussianData {
     Gaussian gaussians[];
 };
 
+// Index SSBO
 layout(std430, binding = 1) buffer Indices {
     int indices[];
 };
 
-
+/*
+ * Calculate eigenvalues and eigenvectors of the 2D covariance matrix to
+ * extract the two 2D basis vectors that span the splatted 2D Gaussian.
+ */
 vec4 get_basis(mat2 sigma) {
     float a = sigma[0][0];
     float b = sigma[0][1];
@@ -82,21 +87,18 @@ void main() {
             0,     0,     0
     );
 
+    // Calculate 2D covariance matrix
     mat3 t = jacobian * view3;
     mat3 sigma_prime = t * mat3(gaussian.sigma) * transpose(t);
+    mat2 sigma2 = mat2(sigma_prime);  // take upper left
 
-    mat2 sigma2 = mat2(sigma_prime);  // 2d covariance
-
+    // Get basis vectors of the splatted 2D Gaussian
     vec4 bases = get_basis(sigma2);
     vec2 b1 = bases.xy;
     vec2 b2 = bases.zw;
 
-    //b1 = 512 * vec2(1, 1);
-    //b2 = 512 * vec2(-1, 1);
-
-    //gl_Position = proj * view * vec4(inPos, -1, 1);
     vec2 center = pos2d.xy / pos2d.w;
-    //center = vec2(0, 0);
+
     gl_Position = vec4(center
             + (inPos.x * b1) / (0.5 * viewport_size)
             + (inPos.y * b2) / (0.5 * viewport_size),
@@ -105,7 +107,4 @@ void main() {
 
     PassColor = vec4(gaussian.color.rgb, gaussian.color.a);
     PassPosition = inPos;
-
-    //PassColor = vec4(b2.x, b2.y, 0, 1);
-    //PassColor = vec4(sigma_prime[2].xyz, 1);
 }
