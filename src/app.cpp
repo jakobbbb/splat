@@ -155,18 +155,18 @@ void App::load_data(char* ply_path) {
 
 void App::csort() {
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    const uint16_t max_dist = 65534;
+    const size_t max_dist = 65534;
 
     std::vector<size_t> count(max_dist + 1, 0);
 
-    std::vector<uint16_t> distances{};
+    std::vector<size_t> distances{};
     distances.reserve(num_gaussians);
 
-    std::vector<size_t> output(num_gaussians, 0);
+    std::vector<int> output(num_gaussians, 0);
 
     for (auto const& g : data) {
         float d = glm::abs(glm::length(-cam_pos - g.pos));
-        uint16_t d_int = glm::min(100 * d * d, (float)max_dist-1);
+        size_t d_int = glm::min(100 * d * d, (float)max_dist-1);
         ++count[d_int];
         distances.push_back(d_int);
     }
@@ -176,7 +176,7 @@ void App::csort() {
     }
 
     for (int i = num_gaussians - 1; i >= 0; --i) {
-        uint16_t j = distances[i];
+        size_t j = distances[i];
         --count[j];
         output[count[j]] = i;
     }
