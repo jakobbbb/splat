@@ -2,7 +2,6 @@
 #include <cmath>
 #include <cstdint>
 #include <glm/common.hpp>
-#include "external/happly.h"
 #include "external/miniply/miniply.h"
 #include "util.hpp"
 
@@ -14,7 +13,6 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
-#include <map>
 #include <vector>
 
 #include <chrono>
