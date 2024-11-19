@@ -212,6 +212,7 @@ void App::load_data(char* ply_path) {
  * sort needs to be an integer, we cannot guarantee exact sorting.
  */
 void App::sort() {
+    auto start_time = std::chrono::system_clock::now();
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
     const size_t n_buckets = 65534;
 
@@ -241,6 +242,10 @@ void App::sort() {
         --count[j];
         output[count[j]] = i;
     }
+
+    auto end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> duration_in_s = end_time - start_time;
+    std::cout << "Sotring took " << duration_in_s.count() << "s" << std::endl;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
