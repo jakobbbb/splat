@@ -211,7 +211,7 @@ void App::load_data(char* ply_path) {
  * Sort Gaussians based on distance to camera using counting sort.  Because the key for counting
  * sort needs to be an integer, we cannot guarantee exact sorting.
  */
-void App::csort() {
+void App::sort() {
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
     const size_t n_buckets = 65534;
 
@@ -249,23 +249,6 @@ void App::csort() {
                  GL_DYNAMIC_COPY);
 }
 
-/*
- * Naive and slow sorting of Gaussians using `std::sort`.
- */
-void App::sort() {
-    glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    auto comp = [&](int i1, int i2) {
-        return 0 > (glm::length(-cam_pos - data[i1].pos) - glm::length(-cam_pos - data[i2].pos));
-    };
-    std::sort(indices.begin(), indices.end(), comp);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 indices.size() * sizeof(int),
-                 indices.data(),
-                 GL_DYNAMIC_COPY);
-}
-
 void App::load_shaders() {
     auto vert = util::load_shader("../shader/gaussian.vert", GL_VERTEX_SHADER);
     auto frag = util::load_shader("../shader/gaussian.frag", GL_FRAGMENT_SHADER);
@@ -291,11 +274,8 @@ void App::run() {
 }
 
 void App::process_inputs() {
-    if (glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS) {
-        sort();
-    }
     if (glfwGetKey(win, GLFW_KEY_C) == GLFW_PRESS) {
-        csort();
+        sort();
     }
 
     float speed = 1.5f;
