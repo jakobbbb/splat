@@ -13,3 +13,11 @@ cmake ..
 make spalt
 ./src/splat /path/to/ply
 ```
+
+## controls
+
+Use `W` `A` `S` `D`, hold down right mouse button to look around.
+
+Press `P` for point rendering mode and `G` to render Gaussians.
+
+Sorting is triggered manually by pressing `C`.
