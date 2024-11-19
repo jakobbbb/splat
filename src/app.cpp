@@ -1,5 +1,8 @@
 #include "app.hpp"
+#include <cmath>
+#include <cstdint>
 #include "external/happly.h"
+#include "external/miniply/miniply.h"
 #include "util.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL  // waow
@@ -12,6 +15,9 @@
 #include <iostream>
 #include <map>
 #include <vector>
+
+#include <chrono>
+#include <ctime>
 
 namespace splat {
 
@@ -47,76 +53,179 @@ void App::init_window() {
 void App::load_data(char* ply_path) {
 
     std::cout << "Reading ply...\n";
-    happly::PLYData ply(ply_path);
-    std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
-    num_gaussians = v_pos.size();
-    std::cout << "Got " << num_gaussians << " gaussians (" << num_gaussians * sizeof(Gaussian) / 1e6 << "MB)\n";
-
-    std::vector<std::string> properties = {
-            "x",
-            "y",
-            "z",
-            "f_dc_0",
-            "f_dc_1",
-            "f_dc_2",
-            "opacity",
-            "scale_0",
-            "scale_1",
-            "scale_2",
-            "rot_0",
-            "rot_1",
-            "rot_2",
-            "rot_3",
+    const std::vector<std::string> properties = {
+        "x",
+        "y",
+        "z",
+        "f_dc_0",
+        "f_dc_1",
+        "f_dc_2",
+        "opacity",
+        "scale_0",
+        "scale_1",
+        "scale_2",
+        "rot_0",
+        "rot_1",
+        "rot_2",
+        "rot_3",
     };
 
-    std::map<std::string, std::vector<float>> values{};
+    // check if file exists
+    miniply::PLYReader reader(ply_path);
+    if (!reader.valid()) {
+        std::cerr << "Failed to open " << ply_path << std::endl;
+    }
+
+    // check we have vertex elements
+    miniply::PLYElement* gsSplatEl = reader.get_element(reader.find_element("vertex"));
+    if (gsSplatEl == nullptr) {
+        std::cerr << "no vertex element could be found" << std::endl;
+    }
+
+    // could check if loading succeeds
+    //reader.load_element();
+    uint32_t num_gaussians = reader.num_rows();
+    std::cout << "Got " << num_gaussians << " gaussians (" << num_gaussians * sizeof(Gaussian) / 1e6 << "MB)\n";
+
+    // i guess
+    // uint32_t splatPropertyIdx[gsSplatEl->properties.size()];
+    // gsSplatEl->convert_list_to_fixed_size(gsSplatEl->properties.size()-1 , 3, splatPropertyIdx);
+
+
+    // getting all the data we neeed for the splats
+    uint32_t gaussSplatIdx[properties.size()];
+    for (int i=0; i<properties.size(); ++i) {
+        gaussSplatIdx[i] = gsSplatEl->find_property(properties[i].c_str());
+    }
+    
+
+    
+
+
+
+    auto start_time = std::chrono::system_clock::now();
+    
+    // happly::PLYData ply(ply_path);
+    // std::vector<std::array<double, 3>> v_pos = ply.getVertexPositions();
+    // num_gaussians = v_pos.size();
+    // std::cout << "Got " << num_gaussians << " gaussians (" << num_gaussians * sizeof(Gaussian) / 1e6 << "MB)\n";
+
+
+    // std::map<std::string, std::vector<float>> values{};
 
     data.reserve(num_gaussians);
 
-    for (size_t i = 0; i < properties.size(); ++i) {
-        auto property = properties[i];
-        values[property] = (ply.getElement("vertex").getProperty<float>(property));
-    }
+    // for (size_t i = 0; i < properties.size(); ++i) {
+    //     auto property = properties[i];
+    //     values[property] = (ply.getElement("vertex").getProperty<float>(property));
+    // }
 
-    bounds = {
-            {values["x"][0], values["y"][0], values["z"][0]},
-            {values["x"][0], values["y"][0], values["z"][0]},
-    };
+    // bounds = {
+    //         {values["x"][0], values["y"][0], values["z"][0]},
+    //         {values["x"][0], values["y"][0], values["z"][0]},
+    // };
 
     std::cout << "Extracting gaussians...\n";
-    for (size_t i = 0; i < num_gaussians; ++i) {
-        Gaussian g{};
+    const float SH_0 = 0.28209479177387814f;
+    // for (size_t i = 0; i < num_gaussians; ++i) {
+    //     Gaussian g{};
 
+    //     g.pos = {
+    //             values["x"][i],
+    //             values["y"][i],
+    //             values["z"][i],
+    //             1.0f,
+    //     };
+
+    //     g.color = {
+    //             values["f_dc_0"][i],
+    //             values["f_dc_1"][i],
+    //             values["f_dc_2"][i],
+    //             0.0f,
+    //     };
+    //     // extract base color from spherical harmonics
+        
+    //     g.color = 0.5f + SH_0 * g.color;
+    //     g.color.a = 1.0f / (1.0f + exp(-(values["opacity"][i])));
+
+    //     glm::vec3 scale = {
+    //             glm::exp(values["scale_0"][i]),
+    //             glm::exp(values["scale_1"][i]),
+    //             glm::exp(values["scale_2"][i]),
+    //     };
+    //     glm::mat4 scale_mat = glm::scale(glm::mat4(1.0f), scale);
+
+    //     glm::quat rot = {
+    //             values["rot_0"][i],
+    //             values["rot_1"][i],
+    //             values["rot_2"][i],
+    //             values["rot_3"][i],
+    //     };
+    //     glm::mat4 rot_mat = glm::mat4(glm::mat3(rot));
+
+    //     auto rot_scale = rot_mat * scale_mat;
+    //     g.sigma = rot_scale * glm::transpose(rot_scale);
+
+    //     //data.push_back(g);
+
+    //     // update bounds
+    //     for (int i = 0; i < 2; ++i) {
+    //         bounds.first.x = glm::min(bounds.first.x, g.pos.x);
+    //         bounds.first.y = glm::min(bounds.first.y, g.pos.y);
+    //         bounds.first.z = glm::min(bounds.first.z, g.pos.z);
+    //         bounds.second.x = glm::max(bounds.second.x, g.pos.x);
+    //         bounds.second.y = glm::max(bounds.second.y, g.pos.y);
+    //         bounds.second.z = glm::max(bounds.second.z, g.pos.z);
+    //     }
+    // }
+    auto end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> duration_in_s = end_time - start_time;
+    std::cout << "Loading object took " << duration_in_s.count() << "s" << std::endl;
+    std::cout << "Bounds:  min=" << glm::to_string(bounds.first)
+              << ", max=" << glm::to_string(bounds.second) << "\n";
+
+    // while (reader.has_element()) {
+    //   if (!reader.load_element() || !reader.find_pos(gaussSplatIdx)) {
+    //     break;
+    //   }
+    
+    start_time = std::chrono::system_clock::now();
+    reader.load_element();
+    float* line = new float[properties.size() * num_gaussians];
+    reader.extract_properties(gaussSplatIdx, properties.size(), miniply::PLYPropertyType::Float, line);
+    for (size_t i = 0; i < num_gaussians; ++i) {
+      Gaussian g{};
+        int offset = i * properties.size();
         g.pos = {
-                values["x"][i],
-                values["y"][i],
-                values["z"][i],
+                line[offset + 0],
+                line[offset + 1],
+                line[offset + 2],
                 1.0f,
         };
 
         g.color = {
-                values["f_dc_0"][i],
-                values["f_dc_1"][i],
-                values["f_dc_2"][i],
+                line[offset + 3],
+                line[offset + 4],
+                line[offset + 5],
                 0.0f,
         };
         // extract base color from spherical harmonics
-        const float SH_0 = 0.28209479177387814f;
+        
         g.color = 0.5f + SH_0 * g.color;
-        g.color.a = 1.0f / (1.0f + exp(-(values["opacity"][i])));
+        g.color.a = 1.0f / (1.0f + exp(-(line[offset + 6])));
 
         glm::vec3 scale = {
-                glm::exp(values["scale_0"][i]),
-                glm::exp(values["scale_1"][i]),
-                glm::exp(values["scale_2"][i]),
+                glm::exp(line[offset + 7]),
+                glm::exp(line[offset + 8]),
+                glm::exp(line[offset + 9]),
         };
         glm::mat4 scale_mat = glm::scale(glm::mat4(1.0f), scale);
 
         glm::quat rot = {
-                values["rot_0"][i],
-                values["rot_1"][i],
-                values["rot_2"][i],
-                values["rot_3"][i],
+                line[offset + 10],
+                line[offset + 11],
+                line[offset + 12],
+                line[offset + 13],
         };
         glm::mat4 rot_mat = glm::mat4(glm::mat3(rot));
 
@@ -134,10 +243,12 @@ void App::load_data(char* ply_path) {
             bounds.second.y = glm::max(bounds.second.y, g.pos.y);
             bounds.second.z = glm::max(bounds.second.z, g.pos.z);
         }
+      // reader.next_element();
     }
+    end_time = std::chrono::system_clock::now();
+    duration_in_s = end_time - start_time;
+    std::cout << "Loading object took " << duration_in_s.count() << "s" << std::endl;
 
-    std::cout << "Bounds:  min=" << glm::to_string(bounds.first)
-              << ", max=" << glm::to_string(bounds.second) << "\n";
 
     std::cout << "Loading ssbo...\n";
 
