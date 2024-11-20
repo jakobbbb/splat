@@ -214,7 +214,7 @@ void App::load_data(char* ply_path) {
 void App::sort() {
     auto start_time = std::chrono::system_clock::now();
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    const size_t n_buckets = 65534;
+    const size_t n_buckets = 65535;
 
     std::vector<size_t> count(n_buckets + 1, 0);
 
@@ -224,10 +224,12 @@ void App::sort() {
     std::vector<int> output(num_gaussians, 0);
 
     float max_dist = 1.2f * glm::distance(bounds.first, bounds.second);
+    max_dist *= max_dist;
 
     for (auto const& g : data) {
-        float d = glm::abs(glm::length(-cam_pos - g.pos));
-        float d_normalized = n_buckets * glm::sqrt(d / max_dist);  // between 0 and n_buckets
+        auto v = -cam_pos - g.pos;
+        float d = v.x * v.x + v.y * v.y + v.z * v.z;  // dot product
+        float d_normalized = n_buckets * d / max_dist;  // between 0 and n_buckets
         size_t d_int = glm::min(d_normalized, (float)n_buckets - 1);
         ++count[d_int];
         distances.push_back(d_int);
