@@ -20,4 +20,6 @@ Use `W` `A` `S` `D`, hold down right mouse button to look around.
 
 Press `P` for point rendering mode and `G` to render Gaussians.
 
+Press `Shift` to move faster.  The default movement speed can be adjusted with the mouse wheel and reset with `.`.
+
 Sorting is triggered manually by pressing `C`.
