@@ -1,4 +1,5 @@
 #include "app.hpp"
+
 #include <cmath>
 #include <cstdint>
 #include <glm/common.hpp>
@@ -17,6 +18,8 @@
 
 #include <chrono>
 #include <ctime>
+
+splat::App *app_ptr;
 
 namespace splat {
 
@@ -40,7 +43,13 @@ void App::init_window() {
         glViewport(0, 0, width, height);
     };
     glfwSetFramebufferSizeCallback(win, resize_callback);
+    auto scroll_callback = [](GLFWwindow* window, double xoffset, double yoffset) {
+    app_ptr->speed = (yoffset<0) ? app_ptr->speed * 0.9f : app_ptr->speed * 1.1f;
+    };
+    glfwSetScrollCallback(win, scroll_callback);
+
     glfwSwapInterval(0);  // disable vsync
+
 
     glewInit();
 }
@@ -281,46 +290,50 @@ void App::run() {
 }
 
 void App::process_inputs() {
+    float delta_speed;
     if (glfwGetKey(win, GLFW_KEY_C) == GLFW_PRESS) {
         sort();
     }
-
-    float speed = 1.5f;
+    delta_speed = speed * time_delta;
     if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        speed *= 5.0f;
+        delta_speed *= 5.0f;
     }
-    speed *= time_delta;
 
     if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(win, GLFW_TRUE);
     }
 
     if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
-        cam.translate(speed * cam.forward());
+        cam.translate(delta_speed * cam.forward());
     }
     if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
-        cam.translate(-speed * cam.forward());
+        cam.translate(-delta_speed * cam.forward());
     }
     if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-        cam.translate(-speed * cam.right());
+        cam.translate(-delta_speed * cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-        cam.translate(speed * cam.right());
+        cam.translate(delta_speed * cam.right());
     }
     if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        cam.translate(speed * cam.up());
+        cam.translate(delta_speed * cam.up());
     }
     if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        cam.translate(-speed * cam.up());
+        cam.translate(-delta_speed * cam.up());
+    }
+    if (glfwGetKey(win, GLFW_KEY_PERIOD) == GLFW_PRESS) {
+        speed = 1.5f;
     }
 
     if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         double x, y;
+        glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwGetCursorPos(win, &x, &y);
         cam.update_rot(x, y);
     }
     if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
         cam.reset_mouse();
+        glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     if (glfwGetKey(win, GLFW_KEY_G) == GLFW_PRESS) {
@@ -383,5 +396,7 @@ int main(int argc, char** argv) {
     }
     char* ply_path = argv[1];
     auto app = splat::App(ply_path);
+    app_ptr = &app;
+    app.speed = 1.5f;
     app.run();
 }
