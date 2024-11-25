@@ -1,5 +1,5 @@
 #include "app.hpp"
-#include <GLFW/glfw3.h>
+
 #include <cmath>
 #include <cstdint>
 #include <glm/common.hpp>
@@ -220,9 +220,10 @@ void App::load_data(char* ply_path) {
  * Sort Gaussians based on distance to camera using counting sort.  Because the key for counting
  * sort needs to be an integer, we cannot guarantee exact sorting.
  */
-void App::csort() {
+void App::sort() {
+    auto start_time = std::chrono::system_clock::now();
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    const size_t n_buckets = 65534;
+    const size_t n_buckets = 65535;
 
     std::vector<size_t> count(n_buckets + 1, 0);
 
@@ -232,10 +233,12 @@ void App::csort() {
     std::vector<int> output(num_gaussians, 0);
 
     float max_dist = 1.2f * glm::distance(bounds.first, bounds.second);
+    max_dist *= max_dist;
 
     for (auto const& g : data) {
-        float d = glm::abs(glm::length(-cam_pos - g.pos));
-        float d_normalized = n_buckets * glm::sqrt(d / max_dist);  // between 0 and n_buckets
+        auto v = -cam_pos - g.pos;
+        float d = v.x * v.x + v.y * v.y + v.z * v.z;  // dot product
+        float d_normalized = n_buckets * d / max_dist;  // between 0 and n_buckets
         size_t d_int = glm::min(d_normalized, (float)n_buckets - 1);
         ++count[d_int];
         distances.push_back(d_int);
@@ -251,27 +254,14 @@ void App::csort() {
         output[count[j]] = i;
     }
 
+    auto end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> duration_in_s = end_time - start_time;
+    std::cout << "Sotring took " << duration_in_s.count() << "s" << std::endl;
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
                  output.size() * sizeof(int),
                  output.data(),
-                 GL_DYNAMIC_COPY);
-}
-
-/*
- * Naive and slow sorting of Gaussians using `std::sort`.
- */
-void App::sort() {
-    glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    auto comp = [&](int i1, int i2) {
-        return 0 > (glm::length(-cam_pos - data[i1].pos) - glm::length(-cam_pos - data[i2].pos));
-    };
-    std::sort(indices.begin(), indices.end(), comp);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 indices.size() * sizeof(int),
-                 indices.data(),
                  GL_DYNAMIC_COPY);
 }
 
@@ -301,11 +291,8 @@ void App::run() {
 
 void App::process_inputs() {
     float delta_speed;
-    if (glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS) {
-        sort();
-    }
     if (glfwGetKey(win, GLFW_KEY_C) == GLFW_PRESS) {
-        csort();
+        sort();
     }
     delta_speed = speed * time_delta;
     if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {

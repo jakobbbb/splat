@@ -46,7 +46,6 @@ class App {
 
     std::vector<int> indices = {};
     void sort();
-    void csort();
 
     uint32_t frame = 0;
     GLuint vertex_buffer;
