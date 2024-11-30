@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstdint>
 #include <glm/common.hpp>
+#include <numeric>
+#include <string>
 #include "external/miniply/miniply.h"
 #include "util.hpp"
 
@@ -171,7 +173,7 @@ void App::load_data(char* ply_path) {
     auto end_time = std::chrono::system_clock::now();
     std::chrono::duration<double> duration_in_s = end_time - start_time;
     std::cout << "Loading object took " << duration_in_s.count() << "s" << std::endl;
-    
+
     std::cout << "Bounds:  min=" << glm::to_string(bounds.first)
               << ", max=" << glm::to_string(bounds.second) << "\n";
 
@@ -278,6 +280,10 @@ void App::load_shaders() {
 }
 
 void App::run() {
+    int interval = 100;
+    auto frametimes = std::vector<double>(interval);
+    double frames_sum;
+
     while (!glfwWindowShouldClose(win)) {
         time = glfwGetTime();
         glfwSwapBuffers(win);
@@ -285,7 +291,14 @@ void App::run() {
         process_inputs();
         draw();
         ++frame;
+
         time_delta = glfwGetTime() - time;
+        if (frame%interval == 0) {
+            frames_sum = std::reduce(frametimes.begin(),frametimes.end());
+            std::cout << "drew " << interval << " frames, took " << frames_sum << "s / " << (1 / frames_sum) * interval
+            << " fps" << std::endl;
+        }
+        frametimes[frame%interval] = time_delta;
     }
 }
 
