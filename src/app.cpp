@@ -30,7 +30,7 @@ App::App(char* ply_path) {
     load_data(ply_path);
     load_shaders();
     sorting = Sorting();
-    sorting.start();
+    sorting.start(num_gaussians, bounds, data);
     std::cout << "ok\n";
 }
 
@@ -270,6 +270,17 @@ void App::sort() {
                  GL_DYNAMIC_COPY);
 }
 
+void App::async_sort_update() {
+    if (!sorting.is_new_sort_available()) {
+        return;
+    }
+    auto sorted = sorting.get_sorted();
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
+    glBufferData(
+            GL_SHADER_STORAGE_BUFFER, sorted.size() * sizeof(int), sorted.data(), GL_DYNAMIC_COPY);
+}
+
 void App::load_shaders() {
     auto vert = util::load_shader("../shader/gaussian.vert", GL_VERTEX_SHADER);
     auto frag = util::load_shader("../shader/gaussian.frag", GL_FRAGMENT_SHADER);
@@ -292,6 +303,8 @@ void App::run() {
         glfwSwapBuffers(win);
         glfwPollEvents();
         process_inputs();
+        sorting.update(cam.get_pos());
+        async_sort_update();
         draw();
         ++frame;
 

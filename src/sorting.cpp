@@ -4,7 +4,16 @@
 
 namespace splat {
 
-void Sorting::start() {
+void Sorting::start(size_t num_gaussians,
+                    std::pair<glm::vec3, glm::vec3> bounds,
+                    std::vector<Gaussian> const& gaussians) {
+    this->num_gaussians = num_gaussians;
+    this->bounds = bounds;
+    this->gaussians = gaussians;
+
+    sorted_front = std::vector<int>(num_gaussians, 0);
+    sorted_back = std::vector<int>(num_gaussians, 0);
+
     sort_thread = std::thread(&Sorting::loop, this);
 }
 
@@ -15,8 +24,25 @@ void Sorting::stop() {
 
 void Sorting::loop() {
     while (do_sort) {
-        // TODO
+        sort_back();
+        swap();
     }
+}
+
+void Sorting::swap() {
+    // TODO mutex with get_sorted?
+    std::swap(sorted_front, sorted_back);
+    new_sort_available = true;
+}
+
+void Sorting::update(glm::vec3 const& cam_pos) {
+    this->cam_pos = cam_pos;
+}
+
+std::vector<int>& Sorting::get_sorted() {
+    // TODO mutex for swap?
+    new_sort_available = false;
+    return sorted_front;
 }
 
 size_t Sorting::get_sort_key(Gaussian const& g, glm::vec4 const& cam_pos, float max_dist) {
@@ -26,8 +52,30 @@ size_t Sorting::get_sort_key(Gaussian const& g, glm::vec4 const& cam_pos, float 
     return glm::min(d_normalized, (float)NUM_BUCKETS - 1);
 }
 
-void Sorting::sort(std::vector<int>& indices, std::vector<Gaussian> const& gaussians) {
-    // TODO
+void Sorting::sort_back() {
+    std::vector<size_t> count(Sorting::NUM_BUCKETS + 1, 0);
+
+    std::vector<size_t> distances{};
+    distances.reserve(num_gaussians);
+
+    float max_dist = 1.2f * glm::distance(bounds.first, bounds.second);
+    max_dist *= max_dist;
+
+    for (auto const& g : gaussians) {
+        size_t d_int = Sorting::get_sort_key(g, glm::vec4(cam_pos, 1), max_dist);
+        ++count[d_int];
+        distances.push_back(d_int);
+    }
+
+    for (int i = 1; i < count.size(); ++i) {
+        count[i] = count[i] + count[i - 1];
+    }
+
+    for (int i = num_gaussians - 1; i >= 0; --i) {
+        size_t j = distances[i];
+        --count[j];
+        sorted_back[count[j]] = i;
+    }
 }
 
 }  // namespace splat

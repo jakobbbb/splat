@@ -40,6 +40,7 @@ class App {
 
     std::vector<int> indices = {};
     void sort();
+    void async_sort_update();
 
     uint32_t frame = 0;
     GLuint vertex_buffer;
