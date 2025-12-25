@@ -53,6 +53,8 @@ size_t Sorting::get_sort_key(Gaussian const& g, glm::vec4 const& cam_pos, float 
 }
 
 void Sorting::sort_back() {
+    auto start_time = std::chrono::system_clock::now();
+
     std::vector<size_t> count(Sorting::NUM_BUCKETS + 1, 0);
 
     std::vector<size_t> distances{};
@@ -76,6 +78,17 @@ void Sorting::sort_back() {
         --count[j];
         sorted_back[count[j]] = i;
     }
+
+    ++stats.first;
+
+    auto end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> duration_in_s = end_time - start_time;
+    stats.second += duration_in_s.count();
+}
+
+void Sorting::reset_stats() {
+    stats.first = 0;
+    stats.second = 0.0f;
 }
 
 }  // namespace splat

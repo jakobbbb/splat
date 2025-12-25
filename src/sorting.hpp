@@ -18,7 +18,10 @@ class Sorting {
 
     void update(glm::vec3 const& cam_pos);
     std::vector<int>& get_sorted();
-    const bool is_new_sort_available() { return new_sort_available; };
+    bool is_new_sort_available() const { return new_sort_available; }
+
+    std::pair<size_t, float> get_stats() const { return stats; };
+    void reset_stats();
 
     static const size_t NUM_BUCKETS = 65535;
 
@@ -40,6 +43,9 @@ class Sorting {
     glm::vec3 cam_pos;
 
     bool new_sort_available;
+
+    // Number of sorts done, total time spent
+    std::pair<size_t, float> stats;
 };
 }  // namespace splat
 

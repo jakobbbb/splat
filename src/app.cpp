@@ -261,7 +261,7 @@ void App::sort() {
 
     auto end_time = std::chrono::system_clock::now();
     std::chrono::duration<double> duration_in_s = end_time - start_time;
-    std::cout << "Sotring took " << duration_in_s.count() << "s" << std::endl;
+    std::cout << "Sorting took " << duration_in_s.count() << "s" << std::endl;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
@@ -313,6 +313,11 @@ void App::run() {
             frames_sum = std::reduce(frametimes.begin(),frametimes.end());
             std::cout << "drew " << interval << " frames, took " << frames_sum << "s / " << (1 / frames_sum) * interval
             << " fps" << std::endl;
+
+            auto s = sorting.get_stats();
+            std::cout << "  sorted " << s.first << " times, taking " << 1000.0f * s.second / s.first
+                      << "ms on average\n";
+            sorting.reset_stats();
         }
         frametimes[frame%interval] = time_delta;
     }
