@@ -1,6 +1,23 @@
 #include "sorting.hpp"
 
+#include <iostream>
+
 namespace splat {
+
+void Sorting::start() {
+    sort_thread = std::thread(&Sorting::loop, this);
+}
+
+void Sorting::stop() {
+    do_sort = false;
+    sort_thread.join();
+}
+
+void Sorting::loop() {
+    while (do_sort) {
+        // TODO
+    }
+}
 
 size_t Sorting::get_sort_key(Gaussian const& g, glm::vec4 const& cam_pos, float max_dist) {
     auto v = -cam_pos - g.pos;
@@ -10,7 +27,7 @@ size_t Sorting::get_sort_key(Gaussian const& g, glm::vec4 const& cam_pos, float 
 }
 
 void Sorting::sort(std::vector<int>& indices, std::vector<Gaussian> const& gaussians) {
-    return;
+    // TODO
 }
 
 }  // namespace splat

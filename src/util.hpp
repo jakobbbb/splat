@@ -1,8 +1,22 @@
 #ifndef UTIL_HPP
 
+#include <GL/glew.h>
+#include <glm/gtc/quaternion.hpp>
 #include <string>
 #include <vector>
-#include <GL/glew.h>
+
+namespace splat {
+
+struct Gaussian {
+    // X, Y, Z, W=1
+    glm::vec4 pos;
+    // R, G, B, A
+    glm::vec4 color;
+    // 3D Covariance, as mat4 for alignment
+    glm::mat4 sigma;
+};
+
+}  // namespace splat
 
 namespace splat::util {
 

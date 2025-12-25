@@ -6,7 +6,6 @@
 #include <numeric>
 #include <string>
 #include "external/miniply/miniply.h"
-#include "sorting.hpp"
 #include "util.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL  // waow
@@ -30,7 +29,13 @@ App::App(char* ply_path) {
     init_window();
     load_data(ply_path);
     load_shaders();
+    sorting = Sorting();
+    sorting.start();
     std::cout << "ok\n";
+}
+
+App::~App() {
+    sorting.stop();
 }
 
 void App::init_window() {
