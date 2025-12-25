@@ -311,8 +311,8 @@ void App::run() {
         time_delta = glfwGetTime() - time;
         if (frame%interval == 0) {
             frames_sum = std::reduce(frametimes.begin(),frametimes.end());
-            std::cout << "drew " << interval << " frames, took " << frames_sum << "s / " << (1 / frames_sum) * interval
-            << " fps" << std::endl;
+            std::cout << "drew " << interval << " frames, took " << 1000.0f * frames_sum / interval
+                      << " ms avg / " << (1 / frames_sum) * interval << " fps" << std::endl;
 
             auto s = sorting.get_stats();
             std::cout << "  sorted " << s.first << " times, taking " << 1000.0f * s.second / s.first
