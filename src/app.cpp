@@ -225,7 +225,7 @@ void App::load_data(char* ply_path) {
 void App::sort() {
     auto start_time = std::chrono::system_clock::now();
     glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    const size_t n_buckets = 65535;
+    const size_t n_buckets = (1 << 20) - 1;
 
     std::vector<size_t> count(n_buckets + 1, 0);
 
