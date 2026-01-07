@@ -22,4 +22,4 @@ Press `P` for point rendering mode and `G` to render Gaussians.
 
 Press `Shift` to move faster.  The default movement speed can be adjusted with the mouse wheel and reset with `.`.
 
-Sorting is triggered manually by pressing `C`.
+Sorting happens in a separate thread, but can also be triggered manually by pressing `C`.

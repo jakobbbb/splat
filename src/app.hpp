@@ -2,6 +2,8 @@
 #define APP_HPP
 
 #include "camera.hpp"
+#include "sorting.hpp"
+#include "util.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -12,18 +14,10 @@ int main(int argc, char** argv);
 
 namespace splat {
 
-struct Gaussian {
-    // X, Y, Z, W=1
-    glm::vec4 pos;
-    // R, G, B, A
-    glm::vec4 color;
-    // 3D Covariance, as mat4 for alignment
-    glm::mat4 sigma;
-};
-
 class App {
    public:
     App(char* ply_path);
+    ~App();
     void run();
 
     const uint32_t WIDTH = 1280;
@@ -46,6 +40,7 @@ class App {
 
     std::vector<int> indices = {};
     void sort();
+    void async_sort_update();
 
     uint32_t frame = 0;
     GLuint vertex_buffer;
@@ -58,6 +53,7 @@ class App {
     size_t num_gaussians;
 
     Camera cam;
+    Sorting sorting;
 };
 }  // namespace splat
 

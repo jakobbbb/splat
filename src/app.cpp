@@ -29,7 +29,13 @@ App::App(char* ply_path) {
     init_window();
     load_data(ply_path);
     load_shaders();
+    sorting = Sorting();
+    sorting.start(num_gaussians, bounds, data);
     std::cout << "ok\n";
+}
+
+App::~App() {
+    sorting.stop();
 }
 
 void App::init_window() {
@@ -224,24 +230,21 @@ void App::load_data(char* ply_path) {
  */
 void App::sort() {
     auto start_time = std::chrono::system_clock::now();
-    glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
-    const size_t n_buckets = (1 << 20) - 1;
+    std::vector<int> output(num_gaussians, 0);
 
-    std::vector<size_t> count(n_buckets + 1, 0);
+    glm::vec4 cam_pos = glm::vec4(cam.get_pos(), 1);
+
+    std::vector<size_t> count(Sorting::NUM_BUCKETS + 1, 0);
 
     std::vector<size_t> distances{};
     distances.reserve(num_gaussians);
 
-    std::vector<int> output(num_gaussians, 0);
 
     float max_dist = 1.2f * glm::distance(bounds.first, bounds.second);
     max_dist *= max_dist;
 
     for (auto const& g : data) {
-        auto v = -cam_pos - g.pos;
-        float d = v.x * v.x + v.y * v.y + v.z * v.z;  // dot product
-        float d_normalized = n_buckets * d / max_dist;  // between 0 and n_buckets
-        size_t d_int = glm::min(d_normalized, (float)n_buckets - 1);
+        size_t d_int = Sorting::get_sort_key(g, cam_pos, max_dist);
         ++count[d_int];
         distances.push_back(d_int);
     }
@@ -258,13 +261,24 @@ void App::sort() {
 
     auto end_time = std::chrono::system_clock::now();
     std::chrono::duration<double> duration_in_s = end_time - start_time;
-    std::cout << "Sotring took " << duration_in_s.count() << "s" << std::endl;
+    std::cout << "Sorting took " << duration_in_s.count() << "s" << std::endl;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
                  output.size() * sizeof(int),
                  output.data(),
                  GL_DYNAMIC_COPY);
+}
+
+void App::async_sort_update() {
+    if (!sorting.is_new_sort_available()) {
+        return;
+    }
+    auto sorted = sorting.get_sorted();
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, index_ssbo);
+    glBufferData(
+            GL_SHADER_STORAGE_BUFFER, sorted.size() * sizeof(int), sorted.data(), GL_DYNAMIC_COPY);
 }
 
 void App::load_shaders() {
@@ -289,14 +303,21 @@ void App::run() {
         glfwSwapBuffers(win);
         glfwPollEvents();
         process_inputs();
+        sorting.update(cam.get_pos());
+        async_sort_update();
         draw();
         ++frame;
 
         time_delta = glfwGetTime() - time;
         if (frame%interval == 0) {
             frames_sum = std::reduce(frametimes.begin(),frametimes.end());
-            std::cout << "drew " << interval << " frames, took " << frames_sum << "s / " << (1 / frames_sum) * interval
-            << " fps" << std::endl;
+            std::cout << "drew " << interval << " frames, took " << 1000.0f * frames_sum / interval
+                      << " ms avg / " << (1 / frames_sum) * interval << " fps" << std::endl;
+
+            auto s = sorting.get_stats();
+            std::cout << "  sorted " << s.first << " times, taking " << 1000.0f * s.second / s.first
+                      << "ms on average\n";
+            sorting.reset_stats();
         }
         frametimes[frame%interval] = time_delta;
     }
