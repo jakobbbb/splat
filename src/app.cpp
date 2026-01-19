@@ -324,17 +324,39 @@ void App::run() {
 }
 
 void App::process_inputs() {
-    float delta_speed;
+    if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(win, GLFW_TRUE);
+    }
+
     if (glfwGetKey(win, GLFW_KEY_C) == GLFW_PRESS) {
         sort();
     }
-    delta_speed = speed * time_delta;
-    if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        delta_speed *= 5.0f;
+
+    if (glfwGetKey(win, GLFW_KEY_G) == GLFW_PRESS) {
+        shader = gaussian_shader;
+    }
+    if (glfwGetKey(win, GLFW_KEY_P) == GLFW_PRESS) {
+        shader = point_shader;
     }
 
-    if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(win, GLFW_TRUE);
+    if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) {
+        fps_movement = true;
+    }
+    if (glfwGetKey(win, GLFW_KEY_O) == GLFW_PRESS) {
+        fps_movement = false;
+    }
+
+    if (fps_movement) {
+        process_inputs_fps_movement();
+    } else {
+        process_inputs_orbit_movement();
+    }
+}
+
+void App::process_inputs_fps_movement() {
+    float delta_speed = speed * time_delta;
+    if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        delta_speed *= 5.0f;
     }
 
     if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
@@ -369,13 +391,10 @@ void App::process_inputs() {
         cam.reset_mouse();
         glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
+}
 
-    if (glfwGetKey(win, GLFW_KEY_G) == GLFW_PRESS) {
-        shader = gaussian_shader;
-    }
-    if (glfwGetKey(win, GLFW_KEY_P) == GLFW_PRESS) {
-        shader = point_shader;
-    }
+void App::process_inputs_orbit_movement() {
+    // TODO
 }
 
 void App::draw() {

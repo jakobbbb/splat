@@ -16,10 +16,16 @@ make spalt
 
 ## controls
 
-Use `W` `A` `S` `D`, hold down right mouse button to look around.
+First-person camera (default, activate by pressing `F`): Use `W` `A` `S`
+`D`, hold down right mouse button to look around. Press `Shift` to move
+faster.  The default movement speed can be adjusted with the mouse wheel
+and reset with `.`.
+
+Orbit camera (activate by pressing `O`):  Hold down right mouse button
+to spin the camera around.  Scroll to move to/from the model.  Hold
+middle mouse to shift the orbit center.
 
 Press `P` for point rendering mode and `G` to render Gaussians.
 
-Press `Shift` to move faster.  The default movement speed can be adjusted with the mouse wheel and reset with `.`.
 
 Sorting happens in a separate thread, but can also be triggered manually by pressing `C`.

@@ -32,6 +32,8 @@ class App {
     void init_window();
     void draw();
     void process_inputs();
+    void process_inputs_fps_movement();
+    void process_inputs_orbit_movement();
     void load_data(char* ply_path);
     void load_shaders();
 
@@ -51,6 +53,7 @@ class App {
     GLuint gaussian_shader;
     GLuint shader;
     size_t num_gaussians;
+    bool fps_movement = true;
 
     Camera cam;
     Sorting sorting;
