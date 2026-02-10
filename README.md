@@ -10,7 +10,7 @@ a simple and not very optimized Gaussian splat renderer
 mkdir build
 cd build
 cmake ..
-make spalt
+make splat
 ./src/splat /path/to/ply
 ```
 
